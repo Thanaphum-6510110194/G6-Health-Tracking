@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:health_tracking/services/auth_service.dart';
 import 'register_screen.dart';
-import 'home_screen.dart'; // ต้องสร้างไฟล์นี้เพิ่มภายหลัง
+import 'profile_page.dart';
 
 // ฟังก์ชันหลักในการรันแอปพลิเคชัน
 void main() {
@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // หาก Login สำเร็จ ไปยังหน้า HomeScreen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const BasicProfileScreen()),
       );
     } else {
       // หาก Login ไม่สำเร็จ แสดง SnackBar

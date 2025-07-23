@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:health_tracking/screens/home_screen.dart';
+import 'profile_page.dart';
 
 
 
@@ -110,7 +110,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            MaterialPageRoute(builder: (context) => const BasicProfileScreen()),
           );
         }
 

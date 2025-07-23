@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';  // ไฟล์ที่ถูกสร้างจาก flutterfire configure
-import 'screens/login_screen.dart';  // สมมติว่าคุณมีไฟล์นี้
+import 'firebase_options.dart';
+import 'screens/splash_screen.dart'; // เปลี่ยนมาใช้ SplashScreen
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform // ใช้ config ของ platform นั้น ๆ
+    options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(const MyApp());
 }
@@ -17,13 +17,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Firebase Auth',
+      title: 'Health Tracker', // เปลี่ยนชื่อแอปให้ตรงกับโปรเจกต์
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const LoginScreen(), // เริ่มที่หน้า Login
+      home: const SplashScreen(), // เริ่มต้นที่ SplashScreen
     );
   }
 }
