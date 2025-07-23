@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "594641474846",
+    "project_id": "database-health-ad9b2",
+    "storage_bucket": "database-health-ad9b2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:594641474846:android:ff8ad6d9b28eefa614650f",
+        "android_client_info": {
+          "package_name": "com.company.G6"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC73F1UW8nQ_JgfHFRqPgWebnToeQw0aAQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:594641474846:android:e103d49fe65a1e7314650f",
+        "android_client_info": {
+          "package_name": "com.example.health_tracking"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC73F1UW8nQ_JgfHFRqPgWebnToeQw0aAQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
