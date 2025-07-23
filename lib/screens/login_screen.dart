@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:health_tracking/services/auth_service.dart';
+import 'package:flutter_svg/flutter_svg.dart'; // Import this
 import 'register_screen.dart';
 import 'profile_page.dart';
 
 // ฟังก์ชันหลักในการรันแอปพลิเคชัน
+// This main is probably incorrect if you have a main.dart in lib/ with Firebase.initializeApp
+// Ensure you only have one main() function in your entire lib/ directory, usually in main.dart
+// For now, I'm keeping it as is based on the provided snippet.
 void main() {
   runApp(const MyApp());
 }
@@ -55,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (user != null) {
-      // หาก Login สำเร็จ ไปยังหน้า HomeScreen
+      // หาก Login สำเร็จ ไปยังหน้า BasicProfileScreen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const BasicProfileScreen()),
@@ -73,10 +77,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // ฟังก์ชันสำหรับไปยังหน้า Register
   void _navigateToRegister() {
-     Navigator.push(
+      Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const RegisterScreen()),
-     );
+      );
   }
 
   @override
@@ -101,7 +105,8 @@ class _LoginScreenState extends State<LoginScreen> {
               children: <Widget>[
                 const SizedBox(height: 40.0),
 
-                // Placeholder สำหรับโลโก้
+                // Placeholder สำหรับโลโก้ - โค้ดส่วนนี้ไม่ได้เป็นสาเหตุของ Error "Failed to decode image"
+                // เพราะใช้ Icon ธรรมดา ไม่ได้โหลดรูปภาพ
                 Container(
                   width: 120,
                   height: 120,
@@ -169,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12.0),
                       borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
-                     focusedBorder: OutlineInputBorder(
+                    focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
                       borderSide: BorderSide(color: Colors.blue.shade500, width: 2),
                     ),
@@ -220,14 +225,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24.0),
 
+                // ส่วนที่มีปัญหา: เปลี่ยน Image.network เป็น SvgPicture.network
                 ElevatedButton.icon(
-                  icon: Image.network(
+                  icon: SvgPicture.network( // <--- เปลี่ยนตรงนี้
                     'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
                     height: 22.0,
                   ),
                   label: const Text(
                     'Sign in with Google',
-                     style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
                   ),
                   onPressed: () {
                     // TODO: เพิ่มฟังก์ชันการทำงานเมื่อกดปุ่ม Sign in with Google
@@ -262,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                 const SizedBox(height: 20.0),
+                const SizedBox(height: 20.0),
               ],
             ),
           ),

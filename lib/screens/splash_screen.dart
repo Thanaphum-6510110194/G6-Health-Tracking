@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:health_tracking/screens/login_screen.dart';
-import 'package:health_tracking/screens/dashboard.dart'; // หรือหน้า Home จริงของคุณ
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,38 +9,11 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _checkAuthStatus();
-  }
-
-  void _checkAuthStatus() async {
-    // หน่วงเวลาเล็กน้อยเพื่อแสดง Splash Screen ก่อน
-    await Future.delayed(const Duration(seconds: 3)); // แสดง Splash Screen 3 วินาที
-
-    // ตรวจสอบสถานะการล็อกอินของผู้ใช้
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user == null) {
-        // ไม่มีผู้ใช้ล็อกอินอยู่, ไปหน้า Login
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-      } else {
-        // มีผู้ใช้ล็อกอินอยู่แล้ว, ไปหน้า Dashboard (หรือหน้าหลักของแอป)
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
-        );
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // ตั้งค่าพื้นหลังเป็นสีขาวตามรูป
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -53,7 +24,7 @@ class _SplashScreenState extends State<SplashScreen> {
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
@@ -66,12 +37,12 @@ class _SplashScreenState extends State<SplashScreen> {
                     color: Colors.black.withOpacity(0.2),
                     spreadRadius: 2,
                     blurRadius: 10,
-                    offset: Offset(0, 5), // changes position of shadow
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
-              child: Icon(
-                Icons.favorite, // ไอคอนรูปหัวใจ
+              child: const Icon(
+                Icons.favorite,
                 color: Colors.white,
                 size: 60,
               ),
@@ -83,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF483D8B), // สีเดียวกับหัวใจเข้ม
+                color: Color(0xFF483D8B),
               ),
             ),
             const SizedBox(height: 10),
@@ -98,23 +69,22 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 50),
             // Get Started Button
             SizedBox(
-              width: 250, // กำหนดความกว้างปุ่ม
-              height: 55, // กำหนดความสูงปุ่ม
+              width: 250,
+              height: 55,
               child: ElevatedButton(
                 onPressed: () {
-                  // อาจจะไม่ต้องทำอะไรที่นี่ เพราะ _checkAuthStatus จะนำทางไปเอง
-                  // หรือถ้าต้องการให้ปุ่มนี้กดแล้วไปหน้า Register (หากผู้ใช้ยังไม่ได้ Login)
+                  // เมื่อกด "Get Started" จะไปหน้า Login (แทน Onboarding ที่ยังไม่มี)
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()), // ไป Login ให้เลือก Register
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  backgroundColor: const Color(0xFF483D8B), // สีม่วงเข้ม
+                  backgroundColor: const Color(0xFF483D8B),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30), // ปรับให้ปุ่มโค้งมน
+                    borderRadius: BorderRadius.circular(30),
                   ),
                   elevation: 5,
                 ),
@@ -131,13 +101,14 @@ class _SplashScreenState extends State<SplashScreen> {
             // Already have an account? TextButton
             TextButton(
               onPressed: () {
+                // เมื่อกด "Already have an account?" จะไปหน้า Login ทันที
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
                 );
               },
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF483D8B), // สีเดียวกับหัวใจเข้ม
+                foregroundColor: const Color(0xFF483D8B),
               ),
               child: const Text(
                 'Already have an account?',
