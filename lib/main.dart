@@ -17,13 +17,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Health Tracker', // เปลี่ยนชื่อแอปให้ตรงกับโปรเจกต์
+      title: 'Health Tracker', 
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const SplashScreen(), // เริ่มต้นที่ SplashScreen
+      home: const SplashScreen(),
     );
   }
 }

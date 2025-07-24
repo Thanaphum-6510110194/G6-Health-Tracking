@@ -20,6 +20,24 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: ColorScheme.light(
+              primary: const Color(0xFF00CAFF), // สีฟ้าอ่อนสำหรับ Header ของ DatePicker
+              onPrimary: Colors.white,         // สีของตัวอักษรใน Header
+              surface: Colors.white,           // สีพื้นหลังของ DatePicker
+              onSurface: Colors.black,         // สีของตัวอักษรวันที่
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF00CAFF), // สีของปุ่ม "CANCEL" และ "OK" ใน DatePicker
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedDate != null) {
@@ -39,6 +57,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // ตั้งค่าสีพื้นหลังของ Scaffold เป็นสีขาว
       appBar: AppBar(
         toolbarHeight: 80, // Adjust toolbar height as needed
         backgroundColor: Colors.white,
@@ -49,7 +68,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             Text(
               'Basic Profile',
               style: TextStyle(
-                color: Colors.blue[900],
+                color: const Color(0xFF3B5998), // สีหัวข้อ
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -58,16 +77,19 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             Row(
               children: [
                 Expanded(
-                  child: LinearProgressIndicator(
-                    value: 1 / 5, // Changed to 1 / 5 for 5 steps
-                    backgroundColor: Colors.grey[300],
-                    color: Colors.blue[700],
-                    minHeight: 4,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10), // กำหนดรัศมีโค้งมน
+                    child: LinearProgressIndicator(
+                      value: 1 / 5, // Changed to 1 / 5 for 5 steps
+                      backgroundColor: Colors.grey[300],
+                      color: const Color(0xFF00CAFF), // สี Progress Bar
+                      minHeight: 6,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Step 1 of 5', // Changed to Step 1 of 5
+                  'Step 1 of 5',
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 14,
@@ -99,7 +121,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.blue[50], // Light blue background
-                      border: Border.all(color: Colors.blue, width: 2),
+                      border: Border.all(color: const Color(0xFF00CAFF), width: 2), // สีขอบเป็นฟ้าอ่อน
                     ),
                     child: Icon(
                       Icons.camera_alt,
@@ -111,7 +133,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                   Text(
                     'Add Profile Photo',
                     style: TextStyle(
-                      color: Colors.blue[700],
+                      color: const Color(0xFF00CAFF), // สีข้อความ "Add Profile Photo"
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -125,11 +147,34 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
               controller: _fullNameController,
               decoration: InputDecoration(
                 labelText: 'Full Name',
+                labelStyle: TextStyle(
+                  color: Colors.grey[700], // สีของ Label Text
+                ),
+                floatingLabelStyle: const TextStyle(
+                  color: Color(0xFF00CAFF), // สีของ Label Text เมื่อโฟกัส
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade400!, // สีขอบ TextField ปกติ
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF00CAFF), // สีขอบ TextField เมื่อโฟกัส
+                    width: 2.0,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade400!, // สีขอบ TextField เมื่อไม่ได้โฟกัส
+                  ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
               ),
+              style: const TextStyle(color: Colors.black87), // สีของข้อความที่กรอก
             ),
             const SizedBox(height: 16),
 
@@ -140,15 +185,39 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
               onTap: () => _selectDate(context),
               decoration: InputDecoration(
                 labelText: 'mm/dd/yyyy',
+                labelStyle: TextStyle(
+                  color: Colors.grey[700], // สีของ Label Text
+                ),
+                floatingLabelStyle: const TextStyle(
+                  color: Color(0xFF00CAFF), // สีของ Label Text เมื่อโฟกัส
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade400!, // สีขอบ TextField ปกติ
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF00CAFF), // สีขอบ TextField เมื่อโฟกัส
+                    width: 2.0,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade400!, // สีขอบ TextField เมื่อไม่ได้โฟกัส
+                  ),
                 ),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.calendar_today),
                   onPressed: () => _selectDate(context),
+                  color: Colors.grey[600], // สี Icon ของปฏิทิน
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
               ),
+              style: const TextStyle(color: Colors.black87), // สีของข้อความที่กรอก
             ),
             const SizedBox(height: 24),
 
@@ -166,17 +235,17 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             ),
             const SizedBox(height: 12),
             GridView.count(
-              shrinkWrap: true, // To make GridView take only necessary space
-              physics: const NeverScrollableScrollPhysics(), // Disable scrolling
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 2.5, // Adjust as needed for button size
+              childAspectRatio: 2.5,
               children: [
-                _buildGenderButton('Male', 'male', '😔'), // Using emoji for placeholder
-                _buildGenderButton('Female', 'female', '😊'),
-                _buildGenderButton('Non-binary', 'non-binary', '⚥'), // Unicode symbol
-                _buildGenderButton('Prefer not to say', 'prefer-not-to-say', '❓'),
+                _buildGenderButton('Male', 'male', Icons.male),
+                _buildGenderButton('Female', 'female', Icons.female),
+                _buildGenderButton('Non-binary', 'non-binary', Icons.transgender),
+                _buildGenderButton('Not specified', 'not-specified', Icons.help_outline), // เปลี่ยนกลับเป็น Prefer not to say
               ],
             ),
             const SizedBox(height: 48),
@@ -196,13 +265,13 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[800], // Darker blue
+                  backgroundColor: const Color(0xFF00CAFF), // สีของปุ่ม Next
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 child: const Text(
-                  'Next', // Changed text to just "Next"
+                  'Next',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -217,7 +286,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     );
   }
 
-  Widget _buildGenderButton(String text, String value, String emoji) {
+  Widget _buildGenderButton(String text, String value, IconData iconData) {
     bool isSelected = _selectedGender == value;
     return ElevatedButton(
       onPressed: () {
@@ -226,12 +295,12 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         });
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? Colors.blue[100] : Colors.grey[100], // Light blue if selected, light grey otherwise
-        foregroundColor: isSelected ? Colors.blue[800] : Colors.grey[700], // Text color
+        backgroundColor: isSelected ? const Color(0xFFE0F7FA) : Colors.grey[100], // Background color เมื่อเลือก (ฟ้าอ่อนมาก)
+        foregroundColor: isSelected ? const Color(0xFF007BFF) : Colors.grey[700], // Text/Icon color เมื่อเลือก (ฟ้าเข้ม)
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: isSelected ? Colors.blue : Colors.grey.shade300, // Blue border if selected
+            color: isSelected ? const Color(0xFF00CAFF) : Colors.grey.shade300!, // สีขอบเมื่อเลือก (ฟ้าอ่อน)
             width: 1.5,
           ),
         ),
@@ -240,12 +309,13 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            emoji,
-            style: const TextStyle(fontSize: 24), // Adjust emoji size
+          Icon(
+            iconData,
+            size: 24,
+            color: isSelected ? const Color(0xFF007BFF) : Colors.grey[700], // สี Icon
           ),
           const SizedBox(width: 8),
-          Flexible( // Use Flexible to prevent text overflow
+          Flexible(
             child: Text(
               text,
               textAlign: TextAlign.center,

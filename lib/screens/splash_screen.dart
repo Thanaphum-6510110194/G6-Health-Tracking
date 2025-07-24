@@ -28,8 +28,8 @@ class _SplashScreenState extends State<SplashScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF6A5ACD), // สีม่วงอ่อน
-                    Color(0xFF483D8B), // สีม่วงเข้ม
+                  Color(0xFF00CAFF), // ฟ้าสดใส
+                  Color(0xFF0072FF),
                   ],
                 ),
                 boxShadow: [
@@ -54,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF483D8B),
+                color:Color(0xFF3B5998),
               ),
             ),
             const SizedBox(height: 10),
@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  backgroundColor: const Color(0xFF483D8B),
+                  backgroundColor: const Color(0xFF00CAFF),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
@@ -108,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 );
               },
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF483D8B),
+                foregroundColor: const Color(0xFF3B5998),
               ),
               child: const Text(
                 'Already have an account?',
