@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:health_tracking/screens/login_screen.dart';
+import 'login_screen.dart';
+import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -76,7 +77,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   // เมื่อกด "Get Started" จะไปหน้า Login (แทน Onboarding ที่ยังไม่มี)
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(builder: (context) => const OnboardingScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -108,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 );
               },
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF3B5998),
+                foregroundColor: const Color(0xFF000000),
               ),
               child: const Text(
                 'Already have an account?',

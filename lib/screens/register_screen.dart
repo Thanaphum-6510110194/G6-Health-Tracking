@@ -4,34 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_page.dart';
 import 'login_screen.dart';
 
-
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(); // ยกเลิก comment บรรทัดนี้หลังตั้งค่า Firebase
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Health Tracking App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Inter',
-        scaffoldBackgroundColor: Colors.white,
-      ),
-      // เริ่มต้นที่หน้า Register
-      home: const RegisterScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-
-// --- Updated Register Screen ---
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -40,20 +12,16 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  // Key สำหรับการ validate form
   final _formKey = GlobalKey<FormState>();
-  // Controller สำหรับรับค่าจากช่องกรอกข้อมูล
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  // State สำหรับจัดการสถานะ loading
   bool _isLoading = false;
 
   @override
   void dispose() {
-    // คืน memory เมื่อ widget ถูกทำลาย
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -61,25 +29,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  // ฟังก์ชันสำหรับสมัครสมาชิก
   Future<void> _register() async {
-    // ตรวจสอบว่าข้อมูลใน form ถูกต้องหรือไม่
     if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true; // เริ่มแสดง loading
+        _isLoading = true;
       });
 
       try {
-        // สร้างผู้ใช้ใหม่ใน Firebase Authentication
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
-        // บันทึกข้อมูลเพิ่มเติมของผู้ใช้ลงใน Firestore
-        // ตรวจสอบว่าคุณได้กำหนด security rules สำหรับ Firestore อย่างถูกต้อง
-        // เพื่อให้ผู้ใช้สามารถเขียนข้อมูลได้
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredential.user!.uid)
@@ -89,7 +51,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           'createdAt': Timestamp.now(),
         });
 
-        // แสดง SnackBar เมื่อสำเร็จ และไปยังหน้า BasicProfileScreen
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Registered successfully")),
@@ -101,14 +62,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
 
       } on FirebaseAuthException catch (e) {
-        // จัดการ Error ที่มาจาก Firebase Auth
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(e.message ?? "Registration failed")),
           );
         }
       } finally {
-        // ไม่ว่าจะสำเร็จหรือล้มเหลว ให้หยุดแสดง loading
         if (mounted) {
           setState(() {
             _isLoading = false;
@@ -121,11 +80,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
-            // ใช้ Form widget เพื่อเปิดใช้งานการ validate
             child: Form(
               key: _formKey,
               child: Column(
@@ -133,7 +92,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 60),
-                  // *** โลโก้: เปลี่ยนเป็นไอคอนรูปหัวใจพร้อม Gradient และ Shadow ***
                   Container(
                     width: 120,
                     height: 120,
@@ -143,13 +101,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Color(0xFF56DFCF), // ฟ้าสดใส
-                          Color(0xFF0ABAB5), // สีหลัก
+                          Color(0xFF56DFCF),
+                          Color(0xFF0ABAB5),
                         ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withAlpha((255 * 0.2).round()),
                           spreadRadius: 2,
                           blurRadius: 10,
                           offset: const Offset(0, 5),
@@ -157,8 +115,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ],
                     ),
                     child: const Icon(
-                      Icons.favorite, // ไอคอนรูปหัวใจ
-                      color: Colors.white, // สีไอคอนเป็นสีขาว
+                      Icons.favorite,
+                      color: Colors.white,
                       size: 60,
                     ),
                   ),
@@ -221,21 +179,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 40),
 
-                  // *** ปุ่ม "Create account": ปรับใช้ Gradient และ Shadow ***
+                  // ปุ่ม "Create account": ปรับใช้ Gradient และ Shadow
                   Container(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [
-                          Color(0xFF0ABAB5), // เริ่มต้น
-                          Color(0xFF56DFCF), // สิ้นสุด
+                          Color(0xFF0ABAB5),
+                          Color(0xFF56DFCF),
                         ],
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                       ),
-                      borderRadius: BorderRadius.circular(12.0), // ปรับให้โค้งมนเหมือนปุ่มอื่นๆ
+                      borderRadius: BorderRadius.circular(12.0),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0ABAB5).withOpacity(0.4), // สีเงาตามสีเริ่มต้น
+                          color: const Color(0xFF0ABAB5).withAlpha((255 * 0.4).round()),
                           spreadRadius: 2,
                           blurRadius: 8,
                           offset: const Offset(0, 4),
@@ -246,7 +204,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: _isLoading ? null : _register,
-                        borderRadius: BorderRadius.circular(12.0), // ปรับให้โค้งมนเหมือนปุ่มอื่นๆ
+                        borderRadius: BorderRadius.circular(12.0),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
                           child: Center(
@@ -301,18 +259,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       validator: validator,
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: TextStyle(color: Colors.grey.shade500),
+        // *** ปรับสี hintText ให้เข้มขึ้นอีก ***
+        hintStyle: const TextStyle(color: Colors.grey), // ยังคงใช้ Colors.grey (shade600)
         contentPadding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+        filled: true,
+        fillColor: Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
+          // *** ปรับสี border ให้เข้มขึ้นอีก ***
+          borderSide: const BorderSide(color: Colors.grey, width: 1.5), // ยังคงใช้ Colors.grey (shade600)
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide(color: Colors.grey.shade400!, width: 1.5),
+          // *** ปรับสี enabledBorder ให้เข้มขึ้นอีก ***
+          borderSide: const BorderSide(color: Colors.grey, width: 1.5), // ยังคงใช้ Colors.grey (shade600)
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
-          // *** เปลี่ยนสีขอบเมื่อโฟกัสเป็น 0ABAB5 ***
           borderSide: const BorderSide(color: Color(0xFF0ABAB5), width: 2.0),
         ),
         errorBorder: OutlineInputBorder(
@@ -324,11 +287,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           borderSide: const BorderSide(color: Colors.red, width: 2.0),
         ),
       ),
-      // *** เพิ่ม floatingLabelStyle เพื่อเปลี่ยนสี Label Text เมื่อโฟกัส ***
       style: const TextStyle(color: Colors.black87), // สีของข้อความที่กรอก
-      // ถ้าต้องการให้ Label Text เปลี่ยนสีเมื่อโฟกัส
-      // คุณอาจจะต้องเพิ่ม labelText แทน hintText ในบางกรณี หรือใช้ FloatingLabelBehavior
-      // แต่สำหรับตอนนี้ เราจะปรับแค่ focusedBorder
     );
   }
 
@@ -338,16 +297,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color(0xFF0ABAB5), // เริ่มต้น
-            Color(0xFF56DFCF), // สิ้นสุด
+            Color(0xFF0ABAB5),
+            Color(0xFF56DFCF),
           ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
-        borderRadius: BorderRadius.circular(12.0), // ปรับให้โค้งมนเหมือนปุ่มอื่นๆ
+        borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0ABAB5).withOpacity(0.4), // สีเงาตามสีเริ่มต้น
+            color: const Color(0xFF0ABAB5).withAlpha((255 * 0.4).round()),
             spreadRadius: 2,
             blurRadius: 8,
             offset: const Offset(0, 4),
@@ -358,7 +317,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: _isLoading ? null : _register,
-          borderRadius: BorderRadius.circular(12.0), // ปรับให้โค้งมนเหมือนปุ่มอื่นๆ
+          borderRadius: BorderRadius.circular(12.0),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
@@ -391,9 +350,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
-          'Have an account? ',
-          style: TextStyle(color: Colors.grey, fontSize: 16),
+        Text(
+          "Have an account? ",
+          style: TextStyle(color: Colors.grey[800], fontSize: 16), // ปรับสีให้เข้มขึ้น
         ),
         GestureDetector(
           onTap: () {
