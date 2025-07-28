@@ -159,15 +159,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.grey.shade300!),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.grey.shade300!),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.blue.shade500!, width: 2),
+                      borderSide: BorderSide(color: Colors.blue.shade500, width: 2),
                     ),
                     contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
                   ),
@@ -184,15 +184,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.grey.shade300!),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.grey.shade300!),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.blue.shade500!, width: 2),
+                      borderSide: BorderSide(color: Colors.blue.shade500, width: 2),
                     ),
                     contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
                   ),
