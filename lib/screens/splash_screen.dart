@@ -28,8 +28,8 @@ class _SplashScreenState extends State<SplashScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                  Color(0xFF00CAFF), // ฟ้าสดใส
-                  Color(0xFF0072FF),
+                  Color(0xFF56DFCF), // ฟ้าสดใส
+                  Color(0xFF0ABAB5),
                   ],
                 ),
                 boxShadow: [
@@ -54,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
-                color:Color(0xFF3B5998),
+                color:Color(0xFF0ABAB5),
               ),
             ),
             const SizedBox(height: 10),
@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  backgroundColor: const Color(0xFF00CAFF),
+                  backgroundColor: const Color(0xFF0ABAB5),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),

@@ -24,14 +24,14 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: ColorScheme.light(
-              primary: const Color(0xFF00CAFF), // สีฟ้าอ่อนสำหรับ Header ของ DatePicker
-              onPrimary: Colors.white,         // สีของตัวอักษรใน Header
-              surface: Colors.white,           // สีพื้นหลังของ DatePicker
-              onSurface: Colors.black,         // สีของตัวอักษรวันที่
+              primary: const Color(0xFF0ABAB5), // สีสำหรับ Header ของ DatePicker (เปลี่ยนเป็น 0ABAB5)
+              onPrimary: Colors.white, // สีของตัวอักษรใน Header
+              surface: Colors.white, // สีพื้นหลังของ DatePicker
+              onSurface: Colors.black, // สีของตัวอักษรวันที่
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF00CAFF), // สีของปุ่ม "CANCEL" และ "OK" ใน DatePicker
+                foregroundColor: const Color(0xFF0ABAB5), // สีของปุ่ม "CANCEL" และ "OK" ใน DatePicker (เปลี่ยนเป็น 0ABAB5)
               ),
             ),
           ),
@@ -68,7 +68,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             Text(
               'Basic Profile',
               style: TextStyle(
-                color: const Color(0xFF3B5998), // สีหัวข้อ
+                color: const Color(0xFF0ABAB5), // สีหัวข้อ (เปลี่ยนเป็น 0ABAB5)
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -82,7 +82,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                     child: LinearProgressIndicator(
                       value: 1 / 5, // Changed to 1 / 5 for 5 steps
                       backgroundColor: Colors.grey[300],
-                      color: const Color(0xFF00CAFF), // สี Progress Bar
+                      color: const Color(0xFF0ABAB5), // สี Progress Bar (เปลี่ยนเป็น 0ABAB5)
                       minHeight: 6,
                     ),
                   ),
@@ -120,20 +120,18 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                     height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.blue[50], // Light blue background
-                      border: Border.all(color: const Color(0xFF00CAFF), width: 2), // สีขอบเป็นฟ้าอ่อน
+                      border: Border.all(color: const Color(0xFF0ABAB5), width: 2), // สีขอบเป็น 0ABAB5
                     ),
                     child: Icon(
-                      Icons.camera_alt,
-                      size: 60,
-                      color: Colors.blue[300],
+                      Icons.add_a_photo_outlined,
+                      size: 80,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Add Profile Photo',
                     style: TextStyle(
-                      color: const Color(0xFF00CAFF), // สีข้อความ "Add Profile Photo"
+                      color: const Color(0xFF0ABAB5), // สีข้อความ "Add Profile Photo" (เปลี่ยนเป็น 0ABAB5)
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -142,120 +140,153 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             ),
             const SizedBox(height: 32),
 
-            // Full Name Text Field
-            TextField(
-              controller: _fullNameController,
-              decoration: InputDecoration(
-                labelText: 'Full Name',
-                labelStyle: TextStyle(
-                  color: Colors.grey[700], // สีของ Label Text
-                ),
-                floatingLabelStyle: const TextStyle(
-                  color: Color(0xFF00CAFF), // สีของ Label Text เมื่อโฟกัส
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Colors.grey.shade400!, // สีขอบ TextField ปกติ
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF00CAFF), // สีขอบ TextField เมื่อโฟกัส
-                    width: 2.0,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Colors.grey.shade400!, // สีขอบ TextField เมื่อไม่ได้โฟกัส
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            // Full Name และ Date of Birth ใน Card
+            Card(
+              color: Colors.white,
+              elevation: 4, // เพิ่มเงา
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16), // ขอบโค้งมน
               ),
-              style: const TextStyle(color: Colors.black87), // สีของข้อความที่กรอก
-            ),
-            const SizedBox(height: 16),
+              margin: const EdgeInsets.symmetric(vertical: 8.0), // Margin รอบ Card
+              child: Padding(
+                padding: const EdgeInsets.all(20.0), // Padding ภายใน Card
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Full Name Text Field
+                    TextField(
+                      controller: _fullNameController,
+                      decoration: InputDecoration(
+                        labelText: 'Full Name',
+                        labelStyle: TextStyle(
+                          color: Colors.grey[700], // สีของ Label Text
+                        ),
+                        floatingLabelStyle: const TextStyle(
+                          color: Color(0xFF0ABAB5), // สีของ Label Text เมื่อโฟกัส (เปลี่ยนเป็น 0ABAB5)
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade400!, // สีขอบ TextField ปกติ
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF0ABAB5), // สีขอบ TextField เมื่อโฟกัส (เปลี่ยนเป็น 0ABAB5)
+                            width: 2.0,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade400!, // สีขอบ TextField เมื่อไม่ได้โฟกัส
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                      ),
+                      style: const TextStyle(color: Colors.black87), // สีของข้อความที่กรอก
+                    ),
+                    const SizedBox(height: 16),
 
-            // Date of Birth Text Field
-            TextField(
-              controller: _dateOfBirthController,
-              readOnly: true, // Make it read-only so date picker is used
-              onTap: () => _selectDate(context),
-              decoration: InputDecoration(
-                labelText: 'mm/dd/yyyy',
-                labelStyle: TextStyle(
-                  color: Colors.grey[700], // สีของ Label Text
+                    // Date of Birth Text Field
+                    TextField(
+                      controller: _dateOfBirthController,
+                      readOnly: true, // Make it read-only so date picker is used
+                      onTap: () => _selectDate(context),
+                      decoration: InputDecoration(
+                        labelText: 'mm/dd/yyyy',
+                        labelStyle: TextStyle(
+                          color: Colors.grey[700], // สีของ Label Text
+                        ),
+                        floatingLabelStyle: const TextStyle(
+                          color: Color(0xFF0ABAB5), // สีของ Label Text เมื่อโฟกัส (เปลี่ยนเป็น 0ABAB5)
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade400!, // สีขอบ TextField ปกติ
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF0ABAB5), // สีขอบ TextField เมื่อโฟกัส (เปลี่ยนเป็น 0ABAB5)
+                            width: 2.0,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade400!, // สีขอบ TextField เมื่อไม่ได้โฟกัส
+                          ),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.calendar_today),
+                          onPressed: () => _selectDate(context),
+                          color: Colors.grey[600], // สี Icon ของปฏิทิน
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                      ),
+                      style: const TextStyle(color: Colors.black87), // สีของข้อความที่กรอก
+                    ),
+                  ],
                 ),
-                floatingLabelStyle: const TextStyle(
-                  color: Color(0xFF00CAFF), // สีของ Label Text เมื่อโฟกัส
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Colors.grey.shade400!, // สีขอบ TextField ปกติ
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF00CAFF), // สีขอบ TextField เมื่อโฟกัส
-                    width: 2.0,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Colors.grey.shade400!, // สีขอบ TextField เมื่อไม่ได้โฟกัส
-                  ),
-                ),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.calendar_today),
-                  onPressed: () => _selectDate(context),
-                  color: Colors.grey[600], // สี Icon ของปฏิทิน
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
               ),
-              style: const TextStyle(color: Colors.black87), // สีของข้อความที่กรอก
             ),
             const SizedBox(height: 24),
 
-            // Gender Section
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Gender',
-                style: TextStyle(
-                  color: Colors.grey[700],
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+            // Gender Section ใน Card
+            Card(
+              color: Colors.white,
+              elevation: 4, // เพิ่มเงา
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16), // ขอบโค้งมน
+              ),
+              margin: const EdgeInsets.symmetric(vertical: 8.0), // Margin รอบ Card
+              child: Padding(
+                padding: const EdgeInsets.all(20.0), // Padding ภายใน Card
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Gender',
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 2.5,
+                      children: [
+                        _buildGenderButton('Male', 'male', Icons.male),
+                        _buildGenderButton('Female', 'female', Icons.female),
+                        _buildGenderButton('Non-binary', 'non-binary', Icons.transgender),
+                        _buildGenderButton('Prefer not to say', 'prefer-not-to-say', Icons.help_outline),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 2.5,
-              children: [
-                _buildGenderButton('Male', 'male', Icons.male),
-                _buildGenderButton('Female', 'female', Icons.female),
-                _buildGenderButton('Non-binary', 'non-binary', Icons.transgender),
-                _buildGenderButton('Not specified', 'not-specified', Icons.help_outline), // เปลี่ยนกลับเป็น Prefer not to say
-              ],
-            ),
             const SizedBox(height: 48),
 
-            // Next Button
+            // Next Button พร้อม Gradient
             SizedBox(
               width: double.infinity,
               height: 56,
-              child: ElevatedButton(
-                onPressed: () {
+              child: InkWell(
+                onTap: () {
                   // TODO: Implement navigation to the next step
                   print('Full Name: ${_fullNameController.text}');
                   print('Date of Birth: ${_dateOfBirthController.text}');
@@ -264,18 +295,35 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                     const SnackBar(content: Text('Next button tapped!')),
                   );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00CAFF), // สีของปุ่ม Next
-                  shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFF0ABAB5), // เริ่มต้น
+                        Color(0xFF56DFCF), // สิ้นสุด
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0ABAB5).withOpacity(0.4),
+                        spreadRadius: 2,
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ),
-                child: const Text(
-                  'Next',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  child: const Text(
+                    'Next',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -296,11 +344,11 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: isSelected ? const Color(0xFFE0F7FA) : Colors.grey[100], // Background color เมื่อเลือก (ฟ้าอ่อนมาก)
-        foregroundColor: isSelected ? const Color(0xFF007BFF) : Colors.grey[700], // Text/Icon color เมื่อเลือก (ฟ้าเข้ม)
+        foregroundColor: isSelected ? const Color(0xFF0ABAB5) : Colors.grey[700], // Text/Icon color เมื่อเลือก (เปลี่ยนเป็น 0ABAB5)
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: isSelected ? const Color(0xFF00CAFF) : Colors.grey.shade300!, // สีขอบเมื่อเลือก (ฟ้าอ่อน)
+            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300!, // สีขอบเมื่อเลือก (เปลี่ยนเป็น 0ABAB5)
             width: 1.5,
           ),
         ),
@@ -312,7 +360,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           Icon(
             iconData,
             size: 24,
-            color: isSelected ? const Color(0xFF007BFF) : Colors.grey[700], // สี Icon
+            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey[700], // สี Icon (เปลี่ยนเป็น 0ABAB5)
           ),
           const SizedBox(width: 8),
           Flexible(

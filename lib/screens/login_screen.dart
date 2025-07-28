@@ -77,10 +77,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // ฟังก์ชันสำหรับไปยังหน้า Register
   void _navigateToRegister() {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const RegisterScreen()),
-      );
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const RegisterScreen()),
+    );
   }
 
   @override
@@ -105,21 +105,37 @@ class _LoginScreenState extends State<LoginScreen> {
               children: <Widget>[
                 const SizedBox(height: 40.0),
 
-                // Placeholder สำหรับโลโก้ - โค้ดส่วนนี้ไม่ได้เป็นสาเหตุของ Error "Failed to decode image"
-                // เพราะใช้ Icon ธรรมดา ไม่ได้โหลดรูปภาพ
+                // *** ส่วนที่แก้ไข: แทนที่ Placeholder ด้วยไอคอนรูปหัวใจพร้อม Gradient และ Shadow ***
                 Container(
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade400, width: 2),
-                    borderRadius: BorderRadius.circular(8),
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF56DFCF), // ฟ้าสดใส
+                        Color(0xFF0ABAB5),
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        spreadRadius: 2,
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
-                  child: Icon(
-                    Icons.image_outlined,
+                  child: const Icon(
+                    Icons.favorite,
+                    color: Colors.white,
                     size: 60,
-                    color: Colors.grey.shade400,
                   ),
                 ),
+                // *** สิ้นสุดการแก้ไข ***
+
                 const SizedBox(height: 24.0),
 
                 const Text(
@@ -143,15 +159,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: Colors.grey.shade300!),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: Colors.grey.shade300!),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.blue.shade500, width: 2),
+                      borderSide: BorderSide(color: Colors.blue.shade500!, width: 2),
                     ),
                     contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
                   ),
@@ -168,36 +184,52 @@ class _LoginScreenState extends State<LoginScreen> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: Colors.grey.shade300!),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: Colors.grey.shade300!),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.blue.shade500, width: 2),
+                      borderSide: BorderSide(color: Colors.blue.shade500!, width: 2),
                     ),
                     contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
                   ),
                 ),
                 const SizedBox(height: 24.0),
 
-                // ปุ่ม Sign In ที่เรียกใช้ฟังก์ชัน _login
-                ElevatedButton(
-                  onPressed: _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00B2FF),
+                // ปุ่ม Sign In ที่มีการไล่สี
+                InkWell(
+                  onTap: _login,
+                  borderRadius: BorderRadius.circular(12.0),
+                  child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    shape: RoundedRectangleBorder(
+                    decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12.0),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF0ABAB5), // เริ่มต้น
+                          Color(0xFF56DFCF), // สิ้นสุด
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0ABAB5).withOpacity(0.4),
+                          spreadRadius: 2,
+                          blurRadius: 8,
+                          offset: const Offset(0, 4), // changes position of shadow
+                        ),
+                      ],
                     ),
-                    elevation: 5,
-                    shadowColor: Colors.blue.withOpacity(0.4),
-                  ),
-                  child: const Text(
-                    'Sign In',
-                    style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                    child: const Center(
+                      child: Text(
+                        'Sign In',
+                        style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16.0),
@@ -225,9 +257,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24.0),
 
-                // ส่วนที่มีปัญหา: เปลี่ยน Image.network เป็น SvgPicture.network
+                // ปุ่ม Sign in with Google
                 ElevatedButton.icon(
-                  icon: SvgPicture.network( // <--- เปลี่ยนตรงนี้
+                  icon: SvgPicture.network(
                     'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
                     height: 22.0,
                   ),
@@ -261,7 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         'Sign Up',
                         style: TextStyle(
-                          color: Color(0xFF00B2FF),
+                          color: Color(0xFF000000),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
