@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:io'; // สำหรับ File
-import 'package:image_picker/image_picker.dart'; // สำหรับเลือกรูปภาพ
-import 'package:path_provider/path_provider.dart'; // สำหรับหา path ในเครื่อง
+import 'dart:io'; // For File
+import 'package:image_picker/image_picker.dart'; // For picking images
+import 'package:path_provider/path_provider.dart'; // For finding local path
+import 'physical_info.dart'; // Import PhysicalInfoScreen
+import 'login_screen.dart'; // เพิ่ม import สำหรับ LoginScreen
 
 class BasicProfileScreen extends StatefulWidget {
   const BasicProfileScreen({super.key});
@@ -16,27 +18,27 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   final TextEditingController _dateOfBirthController = TextEditingController();
   String? _selectedGender; // To store the selected gender
 
-  File? _profileImageFile; // สำหรับเก็บไฟล์รูปภาพที่เลือกจากเครื่องและบันทึกไว้
+  File? _profileImageFile; // To store the selected image file locally
 
   @override
   void initState() {
     super.initState();
-    _loadProfileData(); // โหลดข้อมูลโปรไฟล์รวมถึงรูปภาพที่บันทึกไว้ในเครื่อง
+    _loadProfileData(); // Load profile data including locally saved image
   }
 
-  // ฟังก์ชันสำหรับโหลดข้อมูลโปรไฟล์ (จาก SharedPreferences หรือ Local Database)
-  // และโหลดรูปภาพจาก path ที่บันทึกไว้
+  // Function to load profile data (from SharedPreferences or Local Database)
+  // and load image from saved path
   Future<void> _loadProfileData() async {
-    // ในแอปจริง คุณจะโหลด fullName, dateOfBirth, gender จาก SharedPreferences/Local DB
-    // ตัวอย่าง: SharedPreferences prefs = await SharedPreferences.getInstance();
+    // In a real app, you would load fullName, dateOfBirth, gender from SharedPreferences/Local DB
+    // Example: SharedPreferences prefs = await SharedPreferences.getInstance();
     // _fullNameController.text = prefs.getString('fullName') ?? '';
     // _dateOfBirthController.text = prefs.getString('dateOfBirth') ?? '';
     // _selectedGender = prefs.getString('gender');
 
-    // ส่วนนี้คือการโหลดรูปโปรไฟล์ที่เก็บในเครื่อง
+    // This part loads the profile picture stored locally
     try {
       final directory = await getApplicationDocumentsDirectory();
-      final imagePath = '${directory.path}/profile.png'; // Path ที่เราจะเก็บรูป
+      final imagePath = '${directory.path}/profile.png'; // Path where we store the image
 
       final File savedImage = File(imagePath);
       if (await savedImage.exists()) {
@@ -46,11 +48,11 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       }
     } catch (e) {
       print('Error loading local profile image: $e');
-      // อาจจะแสดง SnackBar หรือ log ข้อผิดพลาด
+      // You might show a SnackBar or log the error
     }
   }
 
-  // ฟังก์ชันสำหรับเลือกรูปภาพและบันทึกลงในเครื่อง
+  // Function to pick and save image locally
   Future<void> _pickAndSaveImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -62,11 +64,11 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         final directory = await getApplicationDocumentsDirectory();
         final String imagePath = '${directory.path}/profile.png';
 
-        // บันทึกไฟล์รูปภาพลงใน directory นั้น
+        // Save the image file to that directory
         final File savedImage = await pickedImage.copy(imagePath);
 
         setState(() {
-          _profileImageFile = savedImage; // อัปเดตไฟล์รูปภาพที่แสดงผล
+          _profileImageFile = savedImage; // Update the displayed image file
         });
 
         if (mounted) {
@@ -85,13 +87,13 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     }
   }
 
-  // ฟังก์ชันสำหรับลบรูปโปรไฟล์
+  // Function to delete profile image
   Future<void> _deleteProfileImage() async {
     if (_profileImageFile != null) {
       try {
-        await _profileImageFile!.delete(); // ลบไฟล์รูปภาพ
+        await _profileImageFile!.delete(); // Delete the image file
         setState(() {
-          _profileImageFile = null; // ตั้งค่าเป็น null เพื่อแสดง Icon แทน
+          _profileImageFile = null; // Set to null to display the Icon instead
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -109,7 +111,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     }
   }
 
-  // ฟังก์ชันสำหรับแสดง Date Picker
+  // Function to show Date Picker
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -158,6 +160,17 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         toolbarHeight: 80,
         backgroundColor: Colors.white,
         elevation: 0,
+        // เพิ่มปุ่มย้อนกลับตรงนี้
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF0ABAB5)),
+          onPressed: () {
+            // *** เปลี่ยนการนำทางให้กลับไปที่ LoginScreen ***
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+            );
+          },
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -202,20 +215,20 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             // Profile Picture Section
-            // ใช้ Stack เพื่อวางซ้อนรูปโปรไฟล์และปุ่มลบ
             Stack(
-              alignment: Alignment.center, // จัดให้อยู่ตรงกลาง Stack
+              alignment: Alignment.center,
               children: [
                 GestureDetector(
-                  onTap: _pickAndSaveImage, // เรียกใช้ฟังก์ชันเลือกและบันทึกรูปภาพ
+                  onTap: _pickAndSaveImage,
                   child: Container(
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
+                      color: Colors.blue[50],
                       border: Border.all(color: const Color(0xFF0ABAB5), width: 2),
                     ),
-                    child: _profileImageFile != null // ถ้ามีไฟล์รูปภาพที่บันทึกไว้
+                    child: _profileImageFile != null
                         ? ClipOval(
                             child: Image.file(
                               _profileImageFile!,
@@ -225,18 +238,19 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                               fit: BoxFit.cover,
                             ),
                           )
-                        : Column( // ถ้าไม่มีรูปภาพใดๆ
+                        : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
                                 Icons.add_a_photo_outlined,
                                 size: 60,
+                                color: Colors.blue[300],
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Add Photo', // เปลี่ยนข้อความให้สั้นลง
+                                'Add Photo',
                                 style: TextStyle(
-                                  color: Color(0xFF000000),
+                                  color: Colors.blue[300],
                                   fontSize: 12,
                                 ),
                               ),
@@ -244,7 +258,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                           ),
                   ),
                 ),
-                // ปุ่มลบรูปโปรไฟล์ (แสดงเมื่อมีรูปภาพเท่านั้น)
                 if (_profileImageFile != null)
                   Positioned(
                     bottom: 0,
@@ -252,24 +265,24 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          width: 120, // ความกว้างเท่ากับวงกลมโปรไฟล์
-                          height: 1, // ความหนาของเส้น
-                          color: Colors.grey[400], // สีของเส้น
+                          width: 120,
+                          height: 1,
+                          color: Colors.grey[400],
                         ),
-                        GestureDetector( // ใช้ GestureDetector สำหรับปุ่มลบ
+                        GestureDetector(
                           onTap: _deleteProfileImage,
                           child: Container(
-                            width: 120, // ความกว้างเท่ากับวงกลมโปรไฟล์
+                            width: 120,
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.8), // พื้นหลังปุ่มลบ
+                              color: Colors.white.withAlpha((255 * 0.8).round()),
                               borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(60), // ทำให้โค้งตามวงกลม
+                                bottomLeft: Radius.circular(60),
                                 bottomRight: Radius.circular(60),
                               ),
                             ),
                             child: Icon(
-                              Icons.delete, // ไอคอนถังขยะ
+                              Icons.delete,
                               color: Colors.red[400],
                               size: 24,
                             ),
@@ -280,11 +293,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                   ),
               ],
             ),
-            const SizedBox(height: 16), // ลดระยะห่างจาก 32 เป็น 16
-            // ลบ Text 'Add Profile Photo' เดิมออก เนื่องจากย้ายไปอยู่ในวงกลมแล้ว
-            // const SizedBox(height: 32), // ลบออก
+            const SizedBox(height: 16),
 
-            // Full Name และ Date of Birth ใน Card
+            // Full Name and Date of Birth in Card
             Card(
               color: Colors.white,
               elevation: 4,
@@ -311,7 +322,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400,
+                            color: Colors.grey.shade400!,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -324,7 +335,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400,
+                            color: Colors.grey.shade400!,
                           ),
                         ),
                         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
@@ -349,7 +360,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400,
+                            color: Colors.grey.shade400!,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -362,7 +373,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400,
+                            color: Colors.grey.shade400!,
                           ),
                         ),
                         suffixIcon: IconButton(
@@ -380,7 +391,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Gender Section ใน Card
+            // Gender Section in Card
             Card(
               color: Colors.white,
               elevation: 4,
@@ -425,19 +436,16 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             ),
             const SizedBox(height: 48),
 
-            // Next Button พร้อม Gradient
+            // Next Button with Gradient
             SizedBox(
               width: double.infinity,
               height: 56,
               child: InkWell(
                 onTap: () {
-                  // TODO: Implement navigation to the next step
-                  print('Full Name: ${_fullNameController.text}');
-                  print('Date of Birth: ${_dateOfBirthController.text}');
-                  print('Selected Gender: $_selectedGender');
-                  // ในแอปจริง คุณอาจจะบันทึกข้อมูลเหล่านี้ลง SharedPreferences หรือ Local Database
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Next button tapped!')),
+                  // Navigate to PhysicalInfoScreen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PhysicalInfoScreen()),
                   );
                 },
                 borderRadius: BorderRadius.circular(12),
@@ -447,15 +455,15 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                     borderRadius: BorderRadius.circular(12),
                     gradient: const LinearGradient(
                       colors: [
-                        Color(0xFF0ABAB5), // เริ่มต้น
-                        Color(0xFF56DFCF), // สิ้นสุด
+                        Color(0xFF0ABAB5), // Start
+                        Color(0xFF56DFCF), // End
                       ],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0ABAB5).withOpacity(0.4),
+                        color: const Color(0xFF0ABAB5).withAlpha((255 * 0.4).round()),
                         spreadRadius: 2,
                         blurRadius: 8,
                         offset: const Offset(0, 4),
@@ -493,7 +501,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300,
+            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300!,
             width: 1.5,
           ),
         ),
