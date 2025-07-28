@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'profile_page.dart';
 import 'login_screen.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -53,11 +53,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Registered successfully")),
+            const SnackBar(content: Text("Registered successfully! Please log in.")),
           );
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const BasicProfileScreen()),
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         }
 
@@ -179,57 +179,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 40),
 
-                  // ปุ่ม "Create account": ปรับใช้ Gradient และ Shadow
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF0ABAB5),
-                          Color(0xFF56DFCF),
-                        ],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0ABAB5).withAlpha((255 * 0.4).round()),
-                          spreadRadius: 2,
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: _isLoading ? null : _register,
-                        borderRadius: BorderRadius.circular(12.0),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          child: Center(
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 3,
-                                    ),
-                                  )
-                                : const Text(
-                                    'Create account',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  // *** เรียกใช้ฟังก์ชัน _buildCreateAccountButton() ตรงนี้ ***
+                  _buildCreateAccountButton(),
                   const SizedBox(height: 30),
 
                   // ลิงค์สำหรับ Sign In
@@ -259,20 +210,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       validator: validator,
       decoration: InputDecoration(
         hintText: hintText,
-        // *** ปรับสี hintText ให้เข้มขึ้นอีก ***
-        hintStyle: const TextStyle(color: Colors.grey), // ยังคงใช้ Colors.grey (shade600)
+        hintStyle: const TextStyle(color: Colors.grey),
         contentPadding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
-          // *** ปรับสี border ให้เข้มขึ้นอีก ***
-          borderSide: const BorderSide(color: Colors.grey, width: 1.5), // ยังคงใช้ Colors.grey (shade600)
+          borderSide: const BorderSide(color: Colors.grey, width: 1.5),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
-          // *** ปรับสี enabledBorder ให้เข้มขึ้นอีก ***
-          borderSide: const BorderSide(color: Colors.grey, width: 1.5), // ยังคงใช้ Colors.grey (shade600)
+          borderSide: const BorderSide(color: Colors.grey, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
@@ -287,7 +235,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           borderSide: const BorderSide(color: Colors.red, width: 2.0),
         ),
       ),
-      style: const TextStyle(color: Colors.black87), // สีของข้อความที่กรอก
+      style: const TextStyle(color: Colors.black),
     );
   }
 
@@ -345,14 +293,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // Widget สำหรับสร้างลิงค์ "Sign In"
   Widget _buildSignInLink() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           "Have an account? ",
-          style: TextStyle(color: Colors.grey[800], fontSize: 16), // ปรับสีให้เข้มขึ้น
+          style: TextStyle(color: Colors.grey[800], fontSize: 16),
         ),
         GestureDetector(
           onTap: () {

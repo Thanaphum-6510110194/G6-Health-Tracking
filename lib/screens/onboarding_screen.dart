@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart'; // Import หน้า Login ที่มีอยู่แล้ว
-import 'splash_screen.dart'; // เพิ่ม import สำหรับ SplashScreen
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
