@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:health_tracking/services/auth_service.dart';
-import 'package:flutter_svg/flutter_svg.dart'; // Import this
+import 'package:flutter_svg/flutter_svg.dart';
 import 'register_screen.dart';
 import 'profile_page.dart';
 
@@ -167,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.blue.shade500, width: 2),
+                      borderSide: BorderSide(color: Color(0xFF0ABAB5), width: 2),
                     ),
                     contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
                   ),
@@ -192,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.blue.shade500, width: 2),
+                      borderSide: BorderSide(color: Color(0xFF0ABAB5), width: 2),
                     ),
                     contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
                   ),

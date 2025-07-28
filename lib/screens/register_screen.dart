@@ -2,25 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_page.dart';
+import 'login_screen.dart';
 
 
-
-// หน้าจอ Login (สำหรับไปต่อเมื่อกด Sign In)
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Sign In')),
-      body: const Center(child: Text('This is the Sign In Screen.')),
-    );
-  }
-}
-
-
-// --- Main App Setup ---
-// คุณจะต้องตั้งค่า Firebase ในโปรเจกต์ของคุณก่อน
-// ดูวิธีได้ที่: https://firebase.google.com/docs/flutter/setup
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // await Firebase.initializeApp(); // ยกเลิก comment บรรทัดนี้หลังตั้งค่า Firebase
@@ -94,6 +78,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
 
         // บันทึกข้อมูลเพิ่มเติมของผู้ใช้ลงใน Firestore
+        // ตรวจสอบว่าคุณได้กำหนด security rules สำหรับ Firestore อย่างถูกต้อง
+        // เพื่อให้ผู้ใช้สามารถเขียนข้อมูลได้
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredential.user!.uid)
@@ -103,7 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           'createdAt': Timestamp.now(),
         });
 
-        // แสดง SnackBar เมื่อสำเร็จ และไปยังหน้า Home
+        // แสดง SnackBar เมื่อสำเร็จ และไปยังหน้า BasicProfileScreen
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Registered successfully")),
@@ -147,14 +133,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 60),
-                  // โลโก้ (Placeholder)
+                  // *** โลโก้: เปลี่ยนเป็นไอคอนรูปหัวใจพร้อม Gradient และ Shadow ***
                   Container(
-                    width: 150,
-                    height: 150,
+                    width: 120,
+                    height: 120,
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade400, width: 2),
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF56DFCF), // ฟ้าสดใส
+                          Color(0xFF0ABAB5), // สีหลัก
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
                     ),
-                    child: Icon(Icons.health_and_safety_outlined, size: 80, color: Colors.grey.shade400),
+                    child: const Icon(
+                      Icons.favorite, // ไอคอนรูปหัวใจ
+                      color: Colors.white, // สีไอคอนเป็นสีขาว
+                      size: 60,
+                    ),
                   ),
                   const SizedBox(height: 40),
                   const Text(
@@ -215,8 +221,57 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 40),
 
-                  // ปุ่ม "Create account"
-                  _buildCreateAccountButton(),
+                  // *** ปุ่ม "Create account": ปรับใช้ Gradient และ Shadow ***
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF0ABAB5), // เริ่มต้น
+                          Color(0xFF56DFCF), // สิ้นสุด
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12.0), // ปรับให้โค้งมนเหมือนปุ่มอื่นๆ
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0ABAB5).withOpacity(0.4), // สีเงาตามสีเริ่มต้น
+                          spreadRadius: 2,
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _isLoading ? null : _register,
+                        borderRadius: BorderRadius.circular(12.0), // ปรับให้โค้งมนเหมือนปุ่มอื่นๆ
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          child: Center(
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 3,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Create account',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 30),
 
                   // ลิงค์สำหรับ Sign In
@@ -253,11 +308,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide(color: Colors.grey.shade400, width: 1.5),
+          borderSide: BorderSide(color: Colors.grey.shade400!, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
-          borderSide: const BorderSide(color: Colors.blue, width: 2.0),
+          // *** เปลี่ยนสีขอบเมื่อโฟกัสเป็น 0ABAB5 ***
+          borderSide: const BorderSide(color: Color(0xFF0ABAB5), width: 2.0),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
@@ -268,6 +324,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           borderSide: const BorderSide(color: Colors.red, width: 2.0),
         ),
       ),
+      // *** เพิ่ม floatingLabelStyle เพื่อเปลี่ยนสี Label Text เมื่อโฟกัส ***
+      style: const TextStyle(color: Colors.black87), // สีของข้อความที่กรอก
+      // ถ้าต้องการให้ Label Text เปลี่ยนสีเมื่อโฟกัส
+      // คุณอาจจะต้องเพิ่ม labelText แทน hintText ในบางกรณี หรือใช้ FloatingLabelBehavior
+      // แต่สำหรับตอนนี้ เราจะปรับแค่ focusedBorder
     );
   }
 
@@ -276,30 +337,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+          colors: [
+            Color(0xFF0ABAB5), // เริ่มต้น
+            Color(0xFF56DFCF), // สิ้นสุด
+          ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
-        borderRadius: BorderRadius.circular(30.0),
+        borderRadius: BorderRadius.circular(12.0), // ปรับให้โค้งมนเหมือนปุ่มอื่นๆ
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
+            color: const Color(0xFF0ABAB5).withOpacity(0.4), // สีเงาตามสีเริ่มต้น
             spreadRadius: 2,
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          // ถ้ากำลัง loading อยู่ จะกดปุ่มไม่ได้
           onTap: _isLoading ? null : _register,
-          borderRadius: BorderRadius.circular(30.0),
+          borderRadius: BorderRadius.circular(12.0), // ปรับให้โค้งมนเหมือนปุ่มอื่นๆ
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
-              // แสดง loading indicator หรือ Text ตาม state
               child: _isLoading
                   ? const SizedBox(
                       width: 24,
@@ -335,8 +397,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         GestureDetector(
           onTap: () {
-            // ไปยังหน้า Login
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const LoginScreen()),
             );
@@ -344,7 +405,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: const Text(
             'Sign In',
             style: TextStyle(
-              color: Color(0xFF0072FF),
+              color: Color(0xFF000000),
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),

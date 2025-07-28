@@ -213,7 +213,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                     height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.blue[50],
                       border: Border.all(color: const Color(0xFF0ABAB5), width: 2),
                     ),
                     child: _profileImageFile != null // ถ้ามีไฟล์รูปภาพที่บันทึกไว้
@@ -232,13 +231,12 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                               Icon(
                                 Icons.add_a_photo_outlined,
                                 size: 60,
-                                color: Colors.blue[300],
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Add Photo', // เปลี่ยนข้อความให้สั้นลง
                                 style: TextStyle(
-                                  color: Colors.blue[300],
+                                  color: Color(0xFF000000),
                                   fontSize: 12,
                                 ),
                               ),
@@ -313,7 +311,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400!,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -326,7 +324,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400!,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
@@ -351,7 +349,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400!,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -364,7 +362,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400!,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                         suffixIcon: IconButton(
@@ -495,7 +493,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300!,
+            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300,
             width: 1.5,
           ),
         ),
