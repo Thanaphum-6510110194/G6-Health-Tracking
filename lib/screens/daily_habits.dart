@@ -1,4 +1,26 @@
+import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+// --- Model Class for Exercise Activity ---
+class ExerciseActivity {
+  String id;
+  String name;
+  TimeOfDay scheduledTime;
+  Duration goalDuration;
+  Duration remainingDuration;
+  bool isRunning = false;
+  Timer? timer;
+
+  ExerciseActivity({
+    required this.name,
+    required this.scheduledTime,
+    required this.goalDuration,
+  })  : id = UniqueKey().toString(),
+        remainingDuration = goalDuration;
+}
+
 
 // กำหนดค่าสีหลักตามที่คุณต้องการ
 const Color primaryColor = Color(0xFF0ABAB5);
@@ -81,7 +103,7 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// --- Widget สำหรับการ์ดดื่มน้ำ (เปลี่ยนเป็น StatefulWidget) ---
+// --- Widget สำหรับการ์ดดื่มน้ำ ---
 class WaterIntakeCard extends StatefulWidget {
   const WaterIntakeCard({super.key});
 
@@ -90,12 +112,9 @@ class WaterIntakeCard extends StatefulWidget {
 }
 
 class _WaterIntakeCardState extends State<WaterIntakeCard> {
-  // สร้าง state เพื่อเก็บจำนวนแก้วน้ำที่ดื่มแล้ว
   int _waterCount = 0;
 
-  // ฟังก์ชันสำหรับเพิ่มจำนวนแก้วน้ำ
   void _addWater() {
-    // เพิ่มจำนวนได้ไม่เกิน 8
     if (_waterCount < 8) {
       setState(() {
         _waterCount++;
@@ -108,10 +127,8 @@ class _WaterIntakeCardState extends State<WaterIntakeCard> {
     return HabitCard(
       icon: Icons.water_drop,
       title: 'Water Intake',
-      // แสดงผลจำนวนแก้วน้ำจาก state
       subtitle: '$_waterCount of 8 glasses',
       buttonText: '+ Add',
-      // ส่งฟังก์ชัน _addWater ไปให้ปุ่มทำงาน
       onPressed: _addWater,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -120,7 +137,6 @@ class _WaterIntakeCardState extends State<WaterIntakeCard> {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              // เปลี่ยนสีตามจำนวนแก้วน้ำที่ดื่มแล้ว
               color: index < _waterCount ? primaryColor : Colors.grey.shade200,
               shape: BoxShape.circle,
             ),
@@ -131,61 +147,266 @@ class _WaterIntakeCardState extends State<WaterIntakeCard> {
   }
 }
 
-
-// --- Widget สำหรับการ์ดออกกำลังกาย ---
-class ExerciseCard extends StatelessWidget {
+// --- Widget สำหรับการ์ดออกกำลังกาย (Refactored to handle a list of activities) ---
+class ExerciseCard extends StatefulWidget {
   const ExerciseCard({super.key});
+
+  @override
+  State<ExerciseCard> createState() => _ExerciseCardState();
+}
+
+class _ExerciseCardState extends State<ExerciseCard> {
+  final List<ExerciseActivity> _activities = [];
+  String? _expandedActivityId;
+
+  @override
+  void dispose() {
+    for (var activity in _activities) {
+      activity.timer?.cancel();
+    }
+    super.dispose();
+  }
+
+  void _toggleTimer(ExerciseActivity activity) {
+    if (activity.isRunning) {
+      activity.timer?.cancel();
+    } else {
+      if (activity.remainingDuration.inSeconds > 0) {
+        activity.timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (mounted) {
+            if (activity.remainingDuration.inSeconds > 0) {
+              setState(() {
+                activity.remainingDuration -= const Duration(seconds: 1);
+              });
+            } else {
+              timer.cancel();
+              setState(() {
+                activity.isRunning = false;
+              });
+            }
+          } else {
+            timer.cancel();
+          }
+        });
+      }
+    }
+    setState(() {
+      activity.isRunning = !activity.isRunning;
+    });
+  }
+
+  void _resetTimer(ExerciseActivity activity) {
+    activity.timer?.cancel();
+    setState(() {
+      activity.isRunning = false;
+      activity.remainingDuration = activity.goalDuration;
+    });
+  }
+  
+  void _deleteActivity(String id) {
+     final activity = _activities.firstWhere((act) => act.id == id);
+     activity.timer?.cancel();
+     setState(() {
+       _activities.removeWhere((act) => act.id == id);
+     });
+  }
+
+  Future<void> _showActivityDialog({ExerciseActivity? activity}) async {
+    final bool isEditing = activity != null;
+    final nameController = TextEditingController(text: activity?.name ?? '');
+    TimeOfDay selectedTime = activity?.scheduledTime ?? TimeOfDay.now();
+    Duration selectedDuration = activity?.goalDuration ?? const Duration(minutes: 10);
+
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(isEditing ? 'Edit Activity' : 'Add Activity'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Activity Name'), autofocus: true),
+                    const SizedBox(height: 16),
+                    ListTile(
+                      title: const Text('Duration'),
+                      subtitle: Text('${selectedDuration.inHours}h ${selectedDuration.inMinutes.remainder(60)}m ${selectedDuration.inSeconds.remainder(60)}s'),
+                      trailing: const Icon(Icons.timer_outlined),
+                      onTap: () async {
+                        final Duration? picked = await showDialog<Duration>(
+                          context: context,
+                          builder: (context) {
+                            Duration tempDuration = selectedDuration;
+                            return AlertDialog(
+                              title: const Text('Select Duration'),
+                              content: SizedBox(
+                                height: 200,
+                                child: CupertinoTimerPicker(
+                                  mode: CupertinoTimerPickerMode.hms,
+                                  initialTimerDuration: tempDuration,
+                                  onTimerDurationChanged: (Duration newDuration) {
+                                    tempDuration = newDuration;
+                                  },
+                                ),
+                              ),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(tempDuration),
+                                  child: const Text('Save'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                        if (picked != null) {
+                          setDialogState(() {
+                            selectedDuration = picked;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    ListTile(
+                      title: const Text('Start Time'),
+                      subtitle: Text(selectedTime.format(context)),
+                      trailing: const Icon(Icons.schedule),
+                      onTap: () async {
+                        final TimeOfDay? picked = await showTimePicker(context: context, initialTime: selectedTime);
+                        if (picked != null && picked != selectedTime) {
+                          setDialogState(() {
+                            selectedTime = picked;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+                TextButton(
+                  onPressed: () {
+                    final name = nameController.text;
+                    if (name.isNotEmpty && selectedDuration.inSeconds > 0) {
+                      Navigator.of(context).pop({
+                        'name': name,
+                        'duration': selectedDuration,
+                        'time': selectedTime,
+                      });
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (result != null) {
+      setState(() {
+        if (isEditing) {
+          activity.name = result['name'];
+          activity.goalDuration = result['duration'];
+          activity.scheduledTime = result['time'];
+          _resetTimer(activity);
+        } else {
+          _activities.add(ExerciseActivity(
+            name: result['name'],
+            goalDuration: result['duration'],
+            scheduledTime: result['time'],
+          ));
+        }
+      });
+    }
+  }
+
+  String _formatDuration(Duration d) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String twoDigitMinutes = twoDigits(d.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(d.inSeconds.remainder(60));
+    return "${twoDigits(d.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+  }
 
   @override
   Widget build(BuildContext context) {
     return HabitCard(
       icon: Icons.directions_run,
       title: 'Exercise',
-      subtitle: '45 min today',
-      buttonText: '+ Log',
-      onPressed: () {
-        // สามารถเพิ่ม Logic การทำงานของปุ่มนี้ได้
-      },
-      child: Column(
-        children: [
-          ExerciseLogItem(activity: 'Morning Run', duration: '30 min'),
-          const SizedBox(height: 12),
-          ExerciseLogItem(activity: 'Strength Training', duration: '15 min'),
-        ],
-      ),
+      subtitle: '${_activities.length} activities planned',
+      buttonText: '+ Add',
+      onPressed: () => _showActivityDialog(),
+      child: _activities.isEmpty
+          ? const Center(child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: Text('No activities added yet.', style: TextStyle(color: secondaryTextColor)),
+          ))
+          : ExpansionPanelList.radio(
+              elevation: 0,
+              expandedHeaderPadding: EdgeInsets.zero,
+              dividerColor: Colors.transparent,
+              initialOpenPanelValue: _expandedActivityId,
+              expansionCallback: (int index, bool isExpanded) {
+                setState(() {
+                  if (_expandedActivityId == _activities[index].id) {
+                    _expandedActivityId = null;
+                  } else {
+                    _expandedActivityId = _activities[index].id;
+                  }
+                });
+              },
+              children: _activities.map<ExpansionPanelRadio>((activity) {
+                return ExpansionPanelRadio(
+                  value: activity.id,
+                  backgroundColor: cardBackgroundColor,
+                  canTapOnHeader: true,
+                  headerBuilder: (context, isExpanded) {
+                    return ListTile(
+                      title: Text(activity.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      trailing: Text(activity.scheduledTime.format(context), style: const TextStyle(color: secondaryTextColor, fontSize: 14)),
+                    );
+                  },
+                  body: _buildExpandedActivityBody(activity),
+                );
+              }).toList(),
+            ),
     );
   }
-}
 
-class ExerciseLogItem extends StatelessWidget {
-  final String activity;
-  final String duration;
-
-  const ExerciseLogItem({
-    super.key,
-    required this.activity,
-    required this.duration,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildExpandedActivityBody(ExerciseActivity activity) {
+    final bool isFinished = activity.remainingDuration.inSeconds == 0;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
         children: [
-          Text(activity, style: const TextStyle(fontSize: 16, color: textColor)),
           Text(
-            duration,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: primaryColor,
-            ),
+            _formatDuration(activity.remainingDuration),
+            style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: isFinished ? Colors.green : textColor, fontFamily: 'monospace'),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              IconButton(icon: const Icon(Icons.edit, color: secondaryTextColor), onPressed: () => _showActivityDialog(activity: activity)),
+              SizedBox(
+                width: 120,
+                child: ElevatedButton(
+                  onPressed: isFinished ? () => _resetTimer(activity) : () => _toggleTimer(activity),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: activity.isRunning ? Colors.redAccent : (isFinished ? Colors.grey : primaryColor),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(isFinished ? 'Reset' : (activity.isRunning ? 'Stop' : 'Start'), style: const TextStyle(color: textOnButtonColor, fontSize: 16)),
+                ),
+              ),
+              IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent), onPressed: () => _deleteActivity(activity.id)),
+            ],
           ),
         ],
       ),
@@ -193,54 +414,160 @@ class ExerciseLogItem extends StatelessWidget {
   }
 }
 
-// --- Widget สำหรับการ์ดนอนหลับ ---
-class SleepCard extends StatelessWidget {
+
+// --- Widget สำหรับการ์ดนอนหลับ (Stateful with sleep calculation) ---
+class SleepCard extends StatefulWidget {
   const SleepCard({super.key});
+
+  @override
+  State<SleepCard> createState() => _SleepCardState();
+}
+
+class _SleepCardState extends State<SleepCard> {
+  Duration _sleepDuration = Duration.zero;
+  int _starCount = 0;
+
+  String _formatSleepDuration(Duration d) {
+    if (d == Duration.zero) return 'No sleep logged';
+    final hours = d.inHours;
+    final minutes = d.inMinutes.remainder(60);
+    return '${hours}h ${minutes}m last night';
+  }
+
+  int _calculateStars(Duration duration) {
+    final hours = duration.inHours;
+    if (hours >= 8) return 5;
+    if (hours >= 6) return 4;
+    if (hours >= 5) return 3;
+    if (hours >= 3) return 2;
+    if (hours > 0) return 1;
+    return 0;
+  }
+
+  Future<void> _showSleepLogDialog() async {
+    TimeOfDay? bedTime = const TimeOfDay(hour: 22, minute: 0);
+    TimeOfDay? wakeTime = const TimeOfDay(hour: 6, minute: 0);
+
+    final result = await showDialog<Map<String, TimeOfDay>>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('Log Your Sleep'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: const Text('Bedtime'),
+                  subtitle: Text(bedTime!.format(context)),
+                  trailing: const Icon(Icons.nightlight_round),
+                  onTap: () async {
+                    final picked = await showTimePicker(context: context, initialTime: bedTime!);
+                    if (picked != null) {
+                      setDialogState(() => bedTime = picked);
+                    }
+                  },
+                ),
+                ListTile(
+                  title: const Text('Wake-up Time'),
+                  subtitle: Text(wakeTime!.format(context)),
+                  trailing: const Icon(Icons.wb_sunny),
+                  onTap: () async {
+                    final picked = await showTimePicker(context: context, initialTime: wakeTime!);
+                    if (picked != null) {
+                      setDialogState(() => wakeTime = picked);
+                    }
+                  },
+                )
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop({'bedTime': bedTime!, 'wakeTime': wakeTime!});
+                },
+                child: const Text('Save'),
+              ),
+            ],
+          );
+        });
+      },
+    );
+
+    if (result != null) {
+      final bed = result['bedTime']!;
+      final wake = result['wakeTime']!;
+      
+      final now = DateTime.now();
+      DateTime bedDateTime = DateTime(now.year, now.month, now.day, bed.hour, bed.minute);
+      DateTime wakeDateTime = DateTime(now.year, now.month, now.day, wake.hour, wake.minute);
+
+      if (wakeDateTime.isBefore(bedDateTime) || wakeDateTime.isAtSameMomentAs(bedDateTime)) {
+        wakeDateTime = wakeDateTime.add(const Duration(days: 1));
+      }
+
+      setState(() {
+        _sleepDuration = wakeDateTime.difference(bedDateTime);
+        _starCount = _calculateStars(_sleepDuration);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return HabitCard(
       icon: Icons.bedtime,
       title: 'Sleep',
-      subtitle: '8h 15m last night',
-      buttonText: 'Update',
-      onPressed: () {
-        // สามารถเพิ่ม Logic การทำงานของปุ่มนี้ได้
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Quality', style: TextStyle(fontSize: 16, color: textColor)),
-            Row(
-              children: List.generate(5, (index) {
-                return Icon(
-                  Icons.star,
-                  color: Colors.amber.shade400,
-                  size: 24,
-                );
-              }),
+      subtitle: _formatSleepDuration(_sleepDuration),
+      buttonText: 'Update', // This button is part of the original design, we keep it but it does nothing.
+      onPressed: () {}, // Or you can have it call _showSleepLogDialog as well.
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Quality', style: TextStyle(fontSize: 16, color: textColor)),
+                Row(children: List.generate(5, (index) {
+                  return Icon(
+                    index < _starCount ? Icons.star : Icons.star_border,
+                    color: Colors.amber.shade400,
+                    size: 24,
+                  );
+                })),
+              ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _showSleepLogDialog,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text('Log Sleep', style: TextStyle(color: textOnButtonColor, fontSize: 16)),
+            ),
+          )
+        ],
       ),
     );
   }
 }
 
-// --- Widget การ์ดหลัก (Reusable) (เพิ่ม onPressed) ---
+// --- Widget การ์ดหลัก (Reusable) ---
 class HabitCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
   final String buttonText;
   final Widget child;
-  final VoidCallback? onPressed; // เพิ่ม callback สำหรับการกดปุ่ม
+  final VoidCallback? onPressed;
 
   const HabitCard({
     super.key,
@@ -249,7 +576,7 @@ class HabitCard extends StatelessWidget {
     required this.subtitle,
     required this.buttonText,
     required this.child,
-    this.onPressed, // เพิ่มใน constructor
+    this.onPressed,
   });
 
   @override
@@ -259,29 +586,17 @@ class HabitCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardBackgroundColor,
         borderRadius: BorderRadius.circular(20.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            spreadRadius: 1,
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), spreadRadius: 1, blurRadius: 10, offset: const Offset(0, 5))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              // --- ไอคอนพร้อมพื้นหลังไล่สี ---
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [primaryColor, gradientColor],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: const LinearGradient(colors: [primaryColor, gradientColor], begin: Alignment.topLeft, end: Alignment.bottomRight),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(icon, color: textOnButtonColor, size: 32),
@@ -291,41 +606,19 @@ class HabitCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
-                    ),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: secondaryTextColor,
-                      ),
-                    ),
+                    Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor)),
+                    Text(subtitle, style: const TextStyle(fontSize: 14, color: secondaryTextColor)),
                   ],
                 ),
               ),
-              // --- ปุ่ม ---
               TextButton(
-                onPressed: onPressed, // เรียกใช้ callback ที่ส่งเข้ามา
+                onPressed: onPressed,
                 style: TextButton.styleFrom(
                   backgroundColor: primaryColor.withOpacity(0.1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
-                child: Text(
-                  buttonText,
-                  style: const TextStyle(
-                    color: primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: Text(buttonText, style: const TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
