@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'take_photo.dart';
 
 class TakePhotoScreen extends StatelessWidget {
   const TakePhotoScreen({super.key});
@@ -164,7 +165,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const TakePhotoScreen(),
+                  builder: (context) => const ImagePickerScreen(),
                 ),
               );
             },
