@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'notification_screen.dart';
 
 class LifestyleHabitsScreen extends StatefulWidget {
   const LifestyleHabitsScreen({super.key});
@@ -191,10 +192,10 @@ class _LifestyleHabitsScreenState extends State<LifestyleHabitsScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Next: Lifestyle Habits completed!')),
                   );
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(builder: (context) => const NextScreenAfterLifestyle()),
-                  // );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                  );
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: Container(

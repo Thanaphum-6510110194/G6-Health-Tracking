@@ -313,7 +313,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
         ),
         TextButton(
           style: TextButton.styleFrom(
-            foregroundColor: secondaryColor,
+            foregroundColor: _secondaryColor,
           ),
           onPressed: () {
             print('Edit $mealName');
