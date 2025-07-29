@@ -123,6 +123,12 @@ class _AboutYourselfScreenState extends State<AboutYourselfScreen> {
                     );
                     return;
                   }
+                  if (_selectedHealthGoal == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please select your primary health goals.')),
+                    );
+                    return;
+                  }
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: Container(

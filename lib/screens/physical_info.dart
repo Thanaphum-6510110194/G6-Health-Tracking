@@ -9,7 +9,16 @@ class PhysicalInfoScreen extends StatefulWidget {
 }
 
 class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
+  final TextEditingController _weightController = TextEditingController(); // เพิ่ม Controller สำหรับน้ำหนัก
+  final TextEditingController _heightController = TextEditingController(); // เพิ่ม Controller สำหรับส่วนสูง
   String? _selectedActivityLevel; // ระดับกิจกรรมที่เลือก
+
+  @override
+  void dispose() {
+    _weightController.dispose(); // ต้อง dispose controller เมื่อ widget ถูกทำลาย
+    _heightController.dispose(); // ต้อง dispose controller เมื่อ widget ถูกทำลาย
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +53,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: LinearProgressIndicator(
-                      value: 2 / 5, // Step 2 of 5 (เปลี่ยนจาก 6 เป็น 5)
+                      value: 2 / 5, // Step 2 of 5
                       backgroundColor: Colors.grey[300],
                       color: const Color(0xFF0ABAB5),
                       minHeight: 6,
@@ -53,7 +62,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Step 2 of 5', // แสดง Step 2 of 5 (เปลี่ยนจาก 6 เป็น 5)
+                  'Step 2 of 5', // แสดง Step 2 of 5
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 14,
@@ -87,6 +96,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                       const SizedBox(height: 8),
                       // Weight Input Field
                       TextField(
+                        controller: _weightController, // เชื่อม Controller
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           hintText: '60', // ตัวอย่างน้ำหนักเป็น kg
@@ -128,6 +138,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                       const SizedBox(height: 8),
                       // Height Input Field
                       TextField(
+                        controller: _heightController, // เชื่อม Controller
                         keyboardType: TextInputType.number, // เปลี่ยนเป็น number เพื่อกรอก cm
                         decoration: InputDecoration(
                           hintText: '170', // ตัวอย่างส่วนสูงเป็น cm
@@ -177,7 +188,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
             _buildActivityLevelCard(
               'Lightly Active',
               'Light exercise 1-3 days/week',
-              Icons.emoji_emotions_sharp,
+              Icons.emoji_emotions_sharp, // เปลี่ยนไอคอนเป็น Icons.emoji_emotions_sharp
               'lightly_active',
             ),
             const SizedBox(height: 16),
@@ -202,14 +213,27 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
               height: 56,
               child: InkWell(
                 onTap: () {
-                  // Validate selection before navigating
+                  // *** เพิ่มการตรวจสอบเงื่อนไขที่นี่ ***
+                  if (_weightController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please enter your weight.')),
+                    );
+                    return;
+                  }
+                  if (_heightController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please enter your height.')),
+                    );
+                    return;
+                  }
                   if (_selectedActivityLevel == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Please select your activity level.')),
                     );
                     return;
                   }
-                  // *** เปลี่ยนการนำทางไปยัง AboutYourselfScreen ***
+
+                  // Navigate to AboutYourselfScreen if all conditions are met
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const AboutYourselfScreen()),
@@ -238,7 +262,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                     ],
                   ),
                   child: const Text(
-                    'Next: About Yourself', // เปลี่ยนข้อความปุ่มให้สอดคล้อง
+                    'Next: About Yourself',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
