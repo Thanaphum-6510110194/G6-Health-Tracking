@@ -143,8 +143,10 @@ class _WaterIntakeCardState extends State<WaterIntakeCard> {
       subtitle: '$_waterCount of 8 glasses',
       buttonText: '+ Add',
       onPressed: _addWater,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Wrap(
+        spacing: 12.0, 
+        runSpacing: 12.0,
+        alignment: WrapAlignment.center,
         children: List.generate(8, (index) {
           return Container(
             width: 28,
@@ -217,11 +219,11 @@ class _ExerciseCardState extends State<ExerciseCard> {
   }
   
   void _deleteActivity(String id) {
-     final activity = _activities.firstWhere((act) => act.id == id);
-     activity.timer?.cancel();
-     setState(() {
-       _activities.removeWhere((act) => act.id == id);
-     });
+      final activity = _activities.firstWhere((act) => act.id == id);
+      activity.timer?.cancel();
+      setState(() {
+        _activities.removeWhere((act) => act.id == id);
+      });
   }
 
   Future<void> _showActivityDialog({ExerciseActivity? activity}) async {
@@ -233,9 +235,9 @@ class _ExerciseCardState extends State<ExerciseCard> {
 
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (stfContext, setDialogState) {
             return AlertDialog(
               title: Text(isEditing ? 'Edit Activity' : 'Add Activity'),
               content: SingleChildScrollView(
@@ -248,38 +250,41 @@ class _ExerciseCardState extends State<ExerciseCard> {
                       title: const Text('Duration'),
                       subtitle: Text('${selectedDuration.inHours}h ${selectedDuration.inMinutes.remainder(60)}m ${selectedDuration.inSeconds.remainder(60)}s'),
                       trailing: const Icon(Icons.timer_outlined),
-                      onTap: () async {
-                        final Duration? picked = await showDialog<Duration>(
+                      onTap: () {
+                        FocusScope.of(stfContext).unfocus();
+                        Duration tempDuration = selectedDuration;
+                        showCupertinoModalPopup<void>(
                           context: context,
-                          builder: (context) {
-                            Duration tempDuration = selectedDuration;
-                            return AlertDialog(
-                              title: const Text('Select Duration'),
-                              content: SizedBox(
-                                height: 200,
-                                child: CupertinoTimerPicker(
-                                  mode: CupertinoTimerPickerMode.hms,
-                                  initialTimerDuration: tempDuration,
-                                  onTimerDurationChanged: (Duration newDuration) {
-                                    tempDuration = newDuration;
-                                  },
-                                ),
+                          builder: (BuildContext builderContext) {
+                            return Container(
+                              height: 250,
+                              color: CupertinoColors.systemBackground.resolveFrom(builderContext),
+                              child: Column(
+                                children: [
+                                  // FIX: Use Expanded to make the picker flexible and avoid overflow.
+                                  Expanded(
+                                    child: CupertinoTimerPicker(
+                                      mode: CupertinoTimerPickerMode.hms,
+                                      initialTimerDuration: selectedDuration,
+                                      onTimerDurationChanged: (Duration newDuration) {
+                                        tempDuration = newDuration;
+                                      },
+                                    ),
+                                  ),
+                                  CupertinoButton(
+                                    child: const Text('Done'),
+                                    onPressed: () {
+                                      Navigator.of(builderContext).pop();
+                                      setDialogState(() {
+                                        selectedDuration = tempDuration;
+                                      });
+                                    },
+                                  )
+                                ],
                               ),
-                              actions: [
-                                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(tempDuration),
-                                  child: const Text('Save'),
-                                ),
-                              ],
                             );
                           },
                         );
-                        if (picked != null) {
-                          setDialogState(() {
-                            selectedDuration = picked;
-                          });
-                        }
                       },
                     ),
                     const SizedBox(height: 8),
@@ -300,12 +305,12 @@ class _ExerciseCardState extends State<ExerciseCard> {
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
                 TextButton(
                   onPressed: () {
                     final name = nameController.text;
                     if (name.isNotEmpty && selectedDuration.inSeconds > 0) {
-                      Navigator.of(context).pop({
+                      Navigator.of(dialogContext).pop({
                         'name': name,
                         'duration': selectedDuration,
                         'time': selectedTime,
@@ -356,9 +361,9 @@ class _ExerciseCardState extends State<ExerciseCard> {
       onPressed: () => _showActivityDialog(),
       child: _activities.isEmpty
           ? const Center(child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
-            child: Text('No activities added yet.', style: TextStyle(color: secondaryTextColor)),
-          ))
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: Text('No activities added yet.', style: TextStyle(color: secondaryTextColor)),
+            ))
           : ExpansionPanelList.radio(
               elevation: 0,
               expandedHeaderPadding: EdgeInsets.zero,
@@ -403,19 +408,21 @@ class _ExerciseCardState extends State<ExerciseCard> {
           ),
           const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(icon: const Icon(Icons.edit, color: secondaryTextColor), onPressed: () => _showActivityDialog(activity: activity)),
-              SizedBox(
-                width: 120,
-                child: ElevatedButton(
-                  onPressed: isFinished ? () => _resetTimer(activity) : () => _toggleTimer(activity),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: activity.isRunning ? Colors.redAccent : (isFinished ? Colors.grey : primaryColor),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: ElevatedButton(
+                    onPressed: isFinished ? () => _resetTimer(activity) : () => _toggleTimer(activity),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: activity.isRunning ? Colors.redAccent : (isFinished ? Colors.grey : primaryColor),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Text(isFinished ? 'Reset' : (activity.isRunning ? 'Stop' : 'Start'), style: const TextStyle(color: textOnButtonColor, fontSize: 16)),
                   ),
-                  child: Text(isFinished ? 'Reset' : (activity.isRunning ? 'Stop' : 'Start'), style: const TextStyle(color: textOnButtonColor, fontSize: 16)),
                 ),
               ),
               IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent), onPressed: () => _deleteActivity(activity.id)),
@@ -534,8 +541,8 @@ class _SleepCardState extends State<SleepCard> {
       icon: Icons.bedtime,
       title: 'Sleep',
       subtitle: _formatSleepDuration(_sleepDuration),
-      buttonText: 'Update', // This button is part of the original design, we keep it but it does nothing.
-      onPressed: () {}, // Or you can have it call _showSleepLogDialog as well.
+      buttonText: 'Update', 
+      onPressed: () => _showSleepLogDialog(),
       child: Column(
         children: [
           Container(
@@ -604,6 +611,7 @@ class HabitCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
