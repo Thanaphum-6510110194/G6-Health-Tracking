@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:health_tracking/services/auth_service.dart';
 import 'profile_page.dart';
 import 'register_screen.dart';
 
@@ -13,7 +14,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
+  bool _isLoading = false; 
+  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -23,12 +25,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    // นี่คือส่วนของ Login ปกติ (ไม่ได้เกี่ยวข้องกับ Google Sign-In mockup)
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter email and password")),
       );
-      return;
+      return; 
     }
 
     setState(() {
@@ -36,30 +37,38 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // ตัวอย่างการ Login ด้วย Firebase Auth (ถ้ามีการตั้งค่า Firebase แล้ว)
-      // UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-      //   email: _emailController.text.trim(),
-      //   password: _passwordController.text.trim(),
-      // );
+      User? user = await _authService.login(
+        _emailController.text.trim(), 
+        _passwordController.text.trim(), 
+      );
 
-      // หาก Login สำเร็จ (ในกรณี mockup นี้ เราจะถือว่าสำเร็จเสมอเมื่อกดปุ่ม)
-      if (mounted) {
+      if (!mounted) return;
+
+      if (user != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Login successful!")),
         );
-        // นำทางไปยังหน้าโปรไฟล์หรือหน้าหลักของแอป
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const BasicProfileScreen()),
         );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Login failed. Please check your credentials."),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
-    } on FirebaseAuthException catch (e) {
+    } catch (e) {
+      // จัดการข้อผิดพลาดที่ไม่คาดคิด
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message ?? "Login failed")),
+          SnackBar(content: Text("An unexpected error occurred: $e")),
         );
       }
     } finally {
+      // ซ่อน loading indicator ไม่ว่าจะสำเร็จหรือล้มเหลว
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -68,17 +77,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // ฟังก์ชันสำหรับจำลองการ Sign in with Google
-  void _signInWithGoogleMockup() {
-    // ในแอปจริง คุณจะใช้แพ็คเกจ google_sign_in เพื่อเชื่อมต่อกับ Google
-    // แต่สำหรับ mockup นี้ เราจะแค่จำลองการนำทาง
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Simulating Google Sign-In...")),
-    );
-    // นำทางไปยังหน้า Profile ทันที
-    Navigator.pushReplacement(
+  void _navigateToRegister() {
+    Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const BasicProfileScreen()),
+      MaterialPageRoute(builder: (context) => const RegisterScreen()),
     );
   }
 
@@ -95,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 60),
-                // โลโก้: ไอคอนรูปหัวใจพร้อม Gradient และ Shadow
+                // Logo: ไอคอนรูปหัวใจพร้อม Gradient และ Shadow
                 Container(
                   width: 120,
                   height: 120,
@@ -226,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: _isLoading ? null : _login,
+                      onTap: _isLoading ? null : _login, // เรียกใช้ฟังก์ชัน _login
                       borderRadius: BorderRadius.circular(12.0),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -271,12 +273,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 30),
 
-                // *** ปุ่ม Sign in with Google (Mockup) ***
+                // ปุ่ม Sign in with Google (Mockup) - ยังคงเป็น mockup ตามที่เคยระบุไว้
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: OutlinedButton(
-                    onPressed: _signInWithGoogleMockup, // เรียกใช้ฟังก์ชัน mockup
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Simulating Google Sign-In...")),
+                      );
+                      // นำทางไปยังหน้า Profile ทันทีสำหรับ mockup
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const BasicProfileScreen()),
+                      );
+                    },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.grey[800],
                       backgroundColor: Colors.white,
@@ -284,14 +295,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.0),
                       ),
-                      elevation: 2, // เพิ่มเงาเล็กน้อย
+                      elevation: 2,
                       shadowColor: Colors.grey.withOpacity(0.2),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // ไอคอน Google (สามารถใช้ Font Awesome หรือ SVG ได้หากต้องการ)
-                        // สำหรับตัวอย่างนี้ ใช้ Text ธรรมดา
+                        // สำหรับตัวอย่างนี้ ใช้ Image.network
                         Image.network(
                           'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
                           height: 24,
@@ -322,16 +333,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(color: Colors.grey[600], fontSize: 16),
                     ),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                        );
-                      },
+                      onTap: _navigateToRegister, // เรียกใช้ฟังก์ชัน _navigateToRegister
                       child: const Text(
                         'Register',
                         style: TextStyle(
-                          color: Color(0xFF0ABAB5),
+                          color: Color(0xFF0ABAB5), // ใช้สีเดียวกับธีม
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
