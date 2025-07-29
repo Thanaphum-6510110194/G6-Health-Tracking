@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Import สำหรับ FilteringTextInputFormatter
 import 'about_yourself.dart'; // เพิ่ม import สำหรับ AboutYourselfScreen
 
 class PhysicalInfoScreen extends StatefulWidget {
@@ -98,6 +99,9 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                       TextField(
                         controller: _weightController, // เชื่อม Controller
                         keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly // อนุญาตเฉพาะตัวเลข
+                        ],
                         decoration: InputDecoration(
                           hintText: '60', // ตัวอย่างน้ำหนักเป็น kg
                           hintStyle: TextStyle(color: Colors.grey.shade500),
@@ -139,7 +143,10 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                       // Height Input Field
                       TextField(
                         controller: _heightController, // เชื่อม Controller
-                        keyboardType: TextInputType.number, // เปลี่ยนเป็น number เพื่อกรอก cm
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
                         decoration: InputDecoration(
                           hintText: '170', // ตัวอย่างส่วนสูงเป็น cm
                           hintStyle: TextStyle(color: Colors.grey.shade500),
@@ -188,7 +195,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
             _buildActivityLevelCard(
               'Lightly Active',
               'Light exercise 1-3 days/week',
-              Icons.emoji_emotions_sharp, // เปลี่ยนไอคอนเป็น Icons.emoji_emotions_sharp
+              Icons.emoji_emotions_sharp,
               'lightly_active',
             ),
             const SizedBox(height: 16),
@@ -213,7 +220,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
               height: 56,
               child: InkWell(
                 onTap: () {
-                  // *** เพิ่มการตรวจสอบเงื่อนไขที่นี่ ***
+                  // Validate selection before navigating
                   if (_weightController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Please enter your weight.')),
