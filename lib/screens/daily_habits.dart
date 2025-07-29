@@ -81,17 +81,38 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// --- Widget สำหรับการ์ดดื่มน้ำ ---
-class WaterIntakeCard extends StatelessWidget {
+// --- Widget สำหรับการ์ดดื่มน้ำ (เปลี่ยนเป็น StatefulWidget) ---
+class WaterIntakeCard extends StatefulWidget {
   const WaterIntakeCard({super.key});
+
+  @override
+  State<WaterIntakeCard> createState() => _WaterIntakeCardState();
+}
+
+class _WaterIntakeCardState extends State<WaterIntakeCard> {
+  // สร้าง state เพื่อเก็บจำนวนแก้วน้ำที่ดื่มแล้ว
+  int _waterCount = 0;
+
+  // ฟังก์ชันสำหรับเพิ่มจำนวนแก้วน้ำ
+  void _addWater() {
+    // เพิ่มจำนวนได้ไม่เกิน 8
+    if (_waterCount < 8) {
+      setState(() {
+        _waterCount++;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return HabitCard(
       icon: Icons.water_drop,
       title: 'Water Intake',
-      subtitle: '6 of 8 glasses',
+      // แสดงผลจำนวนแก้วน้ำจาก state
+      subtitle: '$_waterCount of 8 glasses',
       buttonText: '+ Add',
+      // ส่งฟังก์ชัน _addWater ไปให้ปุ่มทำงาน
+      onPressed: _addWater,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: List.generate(8, (index) {
@@ -99,7 +120,8 @@ class WaterIntakeCard extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: index < 6 ? primaryColor : Colors.grey.shade200,
+              // เปลี่ยนสีตามจำนวนแก้วน้ำที่ดื่มแล้ว
+              color: index < _waterCount ? primaryColor : Colors.grey.shade200,
               shape: BoxShape.circle,
             ),
           );
@@ -108,6 +130,7 @@ class WaterIntakeCard extends StatelessWidget {
     );
   }
 }
+
 
 // --- Widget สำหรับการ์ดออกกำลังกาย ---
 class ExerciseCard extends StatelessWidget {
@@ -120,6 +143,9 @@ class ExerciseCard extends StatelessWidget {
       title: 'Exercise',
       subtitle: '45 min today',
       buttonText: '+ Log',
+      onPressed: () {
+        // สามารถเพิ่ม Logic การทำงานของปุ่มนี้ได้
+      },
       child: Column(
         children: [
           ExerciseLogItem(activity: 'Morning Run', duration: '30 min'),
@@ -178,6 +204,9 @@ class SleepCard extends StatelessWidget {
       title: 'Sleep',
       subtitle: '8h 15m last night',
       buttonText: 'Update',
+      onPressed: () {
+        // สามารถเพิ่ม Logic การทำงานของปุ่มนี้ได้
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
@@ -204,13 +233,14 @@ class SleepCard extends StatelessWidget {
   }
 }
 
-// --- Widget การ์ดหลัก (Reusable) ---
+// --- Widget การ์ดหลัก (Reusable) (เพิ่ม onPressed) ---
 class HabitCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
   final String buttonText;
   final Widget child;
+  final VoidCallback? onPressed; // เพิ่ม callback สำหรับการกดปุ่ม
 
   const HabitCard({
     super.key,
@@ -219,6 +249,7 @@ class HabitCard extends StatelessWidget {
     required this.subtitle,
     required this.buttonText,
     required this.child,
+    this.onPressed, // เพิ่มใน constructor
   });
 
   @override
@@ -280,7 +311,7 @@ class HabitCard extends StatelessWidget {
               ),
               // --- ปุ่ม ---
               TextButton(
-                onPressed: () {},
+                onPressed: onPressed, // เรียกใช้ callback ที่ส่งเข้ามา
                 style: TextButton.styleFrom(
                   backgroundColor: primaryColor.withOpacity(0.1),
                   shape: RoundedRectangleBorder(
