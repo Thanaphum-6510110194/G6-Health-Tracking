@@ -322,7 +322,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400!,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -335,7 +335,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400!,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
@@ -360,7 +360,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400!,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -373,7 +373,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400!,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                         suffixIcon: IconButton(
@@ -501,7 +501,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300!,
+            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300,
             width: 1.5,
           ),
         ),

@@ -96,11 +96,11 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.grey.shade400!),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.grey.shade400!),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
@@ -140,11 +140,11 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.grey.shade400!),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.grey.shade400!),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
@@ -272,7 +272,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300!,
+            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
           ),
         ),
