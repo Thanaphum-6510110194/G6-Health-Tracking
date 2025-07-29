@@ -4,7 +4,7 @@ import 'dart:io'; // For File
 import 'package:image_picker/image_picker.dart'; // For picking images
 import 'package:path_provider/path_provider.dart'; // For finding local path
 import 'physical_info.dart'; // Import PhysicalInfoScreen
-import 'login_screen.dart'; // เพิ่ม import สำหรับ LoginScreen
+import 'login_screen.dart'; // Import LoginScreen
 
 class BasicProfileScreen extends StatefulWidget {
   const BasicProfileScreen({super.key});
@@ -121,8 +121,8 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            colorScheme: ColorScheme.light(
-              primary: const Color(0xFF0ABAB5),
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF0ABAB5),
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Colors.black,
@@ -160,11 +160,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         toolbarHeight: 80,
         backgroundColor: Colors.white,
         elevation: 0,
-        // เพิ่มปุ่มย้อนกลับตรงนี้
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF0ABAB5)),
           onPressed: () {
-            // *** เปลี่ยนการนำทางให้กลับไปที่ LoginScreen ***
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -174,10 +172,10 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Basic Profile',
               style: TextStyle(
-                color: const Color(0xFF0ABAB5),
+                color: Color(0xFF0ABAB5),
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -189,7 +187,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: LinearProgressIndicator(
-                      value: 1 / 5,
+                      value: 1 / 5, // Step 1 of 5
                       backgroundColor: Colors.grey[300],
                       color: const Color(0xFF0ABAB5),
                       minHeight: 6,
@@ -198,7 +196,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Step 1 of 5',
+                  'Step 1 of 5', // Display Step 1 of 5
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 14,
@@ -322,7 +320,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400!,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -335,7 +333,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400!,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
@@ -360,7 +358,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400!,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -373,7 +371,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade400!,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                         suffixIcon: IconButton(
@@ -442,7 +440,27 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
               height: 56,
               child: InkWell(
                 onTap: () {
-                  // Navigate to PhysicalInfoScreen
+                  // *** เพิ่มการตรวจสอบเงื่อนไขที่นี่ ***
+                  if (_fullNameController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please enter your full name.')),
+                    );
+                    return;
+                  }
+                  if (_dateOfBirthController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please select your date of birth.')),
+                    );
+                    return;
+                  }
+                  if (_selectedGender == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please select your gender.')),
+                    );
+                    return;
+                  }
+
+                  // Navigate to PhysicalInfoScreen if all conditions are met
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const PhysicalInfoScreen()),
@@ -501,7 +519,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300!,
+            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300, // ลบ ! ออก
             width: 1.5,
           ),
         ),

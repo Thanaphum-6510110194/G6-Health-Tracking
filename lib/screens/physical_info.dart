@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'about_yourself.dart'; // เพิ่ม import สำหรับ AboutYourselfScreen
 
 class PhysicalInfoScreen extends StatefulWidget {
   const PhysicalInfoScreen({super.key});
@@ -8,10 +9,16 @@ class PhysicalInfoScreen extends StatefulWidget {
 }
 
 class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
-  // ลบตัวแปรสำหรับเลือกหน่วยออก เนื่องจากจะใช้หน่วยตายตัว
-  // String? _selectedWeightUnit = 'lbs';
-  // String? _selectedHeightUnit = 'ft/in';
+  final TextEditingController _weightController = TextEditingController(); // เพิ่ม Controller สำหรับน้ำหนัก
+  final TextEditingController _heightController = TextEditingController(); // เพิ่ม Controller สำหรับส่วนสูง
   String? _selectedActivityLevel; // ระดับกิจกรรมที่เลือก
+
+  @override
+  void dispose() {
+    _weightController.dispose(); // ต้อง dispose controller เมื่อ widget ถูกทำลาย
+    _heightController.dispose(); // ต้อง dispose controller เมื่อ widget ถูกทำลาย
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +31,8 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF0ABAB5)),
           onPressed: () {
-            Navigator.pop(context); // ย้อนกลับไปหน้าก่อนหน้า
+            // ย้อนกลับไปหน้า ProfileScreen (Step 1)
+            Navigator.pop(context);
           },
         ),
         title: Column(
@@ -32,8 +40,8 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
           children: [
             Text(
               'Physical Info',
-              style: TextStyle(
-                color: const Color(0xFF0ABAB5),
+              style: const TextStyle(
+                color: Color(0xFF0ABAB5),
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -45,7 +53,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: LinearProgressIndicator(
-                      value: 2 / 6, // Step 2 of 6
+                      value: 2 / 5, // Step 2 of 5
                       backgroundColor: Colors.grey[300],
                       color: const Color(0xFF0ABAB5),
                       minHeight: 6,
@@ -54,7 +62,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Step 2 of 6',
+                  'Step 2 of 5', // แสดง Step 2 of 5
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 14,
@@ -88,6 +96,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                       const SizedBox(height: 8),
                       // Weight Input Field
                       TextField(
+                        controller: _weightController, // เชื่อม Controller
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           hintText: '60', // ตัวอย่างน้ำหนักเป็น kg
@@ -96,11 +105,11 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.grey.shade400!),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.grey.shade400!),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
@@ -110,9 +119,6 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                         ),
                         style: const TextStyle(color: Colors.black87),
                       ),
-                      // ลบ DropdownButtonFormField สำหรับหน่วยน้ำหนักออก
-                      // const SizedBox(height: 8),
-                      // DropdownButtonFormField<String>(...)
                     ],
                   ),
                 ),
@@ -132,6 +138,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                       const SizedBox(height: 8),
                       // Height Input Field
                       TextField(
+                        controller: _heightController, // เชื่อม Controller
                         keyboardType: TextInputType.number, // เปลี่ยนเป็น number เพื่อกรอก cm
                         decoration: InputDecoration(
                           hintText: '170', // ตัวอย่างส่วนสูงเป็น cm
@@ -140,11 +147,11 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.grey.shade400!),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.grey.shade400!),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
@@ -154,9 +161,6 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                         ),
                         style: const TextStyle(color: Colors.black87),
                       ),
-                      // ลบ DropdownButtonFormField สำหรับหน่วยส่วนสูงออก
-                      // const SizedBox(height: 8),
-                      // DropdownButtonFormField<String>(...)
                     ],
                   ),
                 ),
@@ -184,7 +188,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
             _buildActivityLevelCard(
               'Lightly Active',
               'Light exercise 1-3 days/week',
-              Icons.accessibility_new_outlined,
+              Icons.emoji_emotions_sharp, // เปลี่ยนไอคอนเป็น Icons.emoji_emotions_sharp
               'lightly_active',
             ),
             const SizedBox(height: 16),
@@ -209,13 +213,30 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
               height: 56,
               child: InkWell(
                 onTap: () {
-                  // TODO: Implement navigation to the next step (Health Assessment)
-                  // ลบ print statements ที่เกี่ยวข้องกับหน่วยที่ไม่ใช้แล้ว
-                  // print('Selected Weight Unit: $_selectedWeightUnit');
-                  // print('Selected Height Unit: $_selectedHeightUnit');
-                  print('Selected Activity Level: $_selectedActivityLevel');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Next: Health Assessment button tapped!')),
+                  // *** เพิ่มการตรวจสอบเงื่อนไขที่นี่ ***
+                  if (_weightController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please enter your weight.')),
+                    );
+                    return;
+                  }
+                  if (_heightController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please enter your height.')),
+                    );
+                    return;
+                  }
+                  if (_selectedActivityLevel == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please select your activity level.')),
+                    );
+                    return;
+                  }
+
+                  // Navigate to AboutYourselfScreen if all conditions are met
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AboutYourselfScreen()),
                   );
                 },
                 borderRadius: BorderRadius.circular(12),
@@ -241,7 +262,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                     ],
                   ),
                   child: const Text(
-                    'Next',
+                    'Next: About Yourself',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -272,7 +293,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300!,
+            color: isSelected ? const Color(0xFF0ABAB5) : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
           ),
         ),

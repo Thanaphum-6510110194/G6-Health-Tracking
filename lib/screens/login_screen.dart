@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // อาจจะไม่ได้ใช้จริงใน mockup แต่คงไว้เพื่อความสมบูรณ์
-import 'package:cloud_firestore/cloud_firestore.dart'; // อาจจะไม่ได้ใช้จริงใน mockup แต่คงไว้เพื่อความสมบูรณ์
-import 'profile_page.dart'; // ต้อง import หน้า BasicProfileScreen
-import 'register_screen.dart'; // ต้อง import หน้า RegisterScreen
+import 'package:firebase_auth/firebase_auth.dart';
+import 'profile_page.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -150,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.grey.shade400!, width: 1.5),
+                      borderSide: BorderSide(color: Colors.grey.shade400, width: 1.5),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
@@ -174,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.grey.shade400!, width: 1.5),
+                      borderSide: BorderSide(color: Colors.grey.shade400, width: 1.5),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
@@ -281,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.grey[800],
                       backgroundColor: Colors.white,
-                      side: BorderSide(color: Colors.grey.shade400!, width: 1.5),
+                      side: BorderSide(color: Colors.grey.shade400, width: 1.5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.0),
                       ),
