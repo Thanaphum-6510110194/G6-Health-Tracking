@@ -436,7 +436,8 @@ class _SleepCardState extends State<SleepCard> {
 
   int _calculateStars(Duration duration) {
     final hours = duration.inHours;
-    if (hours >= 8) return 5;
+    if (hours > 10) return 2;
+    if (hours >= 8) return 5; // This now covers 8, 9, 10
     if (hours >= 6) return 4;
     if (hours >= 5) return 3;
     if (hours >= 3) return 2;
