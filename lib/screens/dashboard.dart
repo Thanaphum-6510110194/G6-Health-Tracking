@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'Meal.dart';
+import 'meal_logging.dart';
 
 const Color primaryColor = Color(0xFF0ABAB5);
 const Color secondaryColor = Color(0xFF56DFCF);

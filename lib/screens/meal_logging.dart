@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:health_tracking/screens/dashboard.dart';
 
 class TakePhotoScreen extends StatelessWidget {
   const TakePhotoScreen({super.key});
