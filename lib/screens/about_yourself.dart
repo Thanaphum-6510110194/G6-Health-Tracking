@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'lifestyle_habits.dart'; 
 
 class AboutYourselfScreen extends StatefulWidget {
   const AboutYourselfScreen({super.key});
@@ -125,10 +126,14 @@ class _AboutYourselfScreenState extends State<AboutYourselfScreen> {
                   }
                   if (_selectedHealthGoal == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please select your primary health goals.')),
+                      const SnackBar(content: Text('Please select your primary health Zgoals.')),
                     );
                     return;
                   }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LifestyleHabitsScreen()), // ต้องเปลี่ยนเป็นหน้าถัดไปที่ถูกต้อง
+                  );
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
