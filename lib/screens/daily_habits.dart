@@ -65,9 +65,22 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // --- เพิ่ม AppBar สำหรับปุ่มย้อนกลับ ---
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new),
+          onPressed: () {
+            // ทำงานเมื่อหน้านี้ถูกเรียกมาจากหน้าอื่น
+            if (Navigator.canPop(context)) {
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+      ),
       body: SafeArea(
+        top: false, // AppBar จัดการพื้นที่ด้านบนแล้ว
         child: ListView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           children: [
             // --- ส่วนหัว ---
             const Text(
