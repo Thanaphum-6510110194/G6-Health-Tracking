@@ -359,7 +359,7 @@ class _ExerciseCardState extends State<ExerciseCard> {
       title: 'Exercise',
       subtitle: '${_activities.length} activities planned',
       buttonText: '+ Add',
-      onPressed: () => _showActivityDialog(),
+      onPressed: () => _showActivityDialog(), //-- กดเพื่อ Add
       child: _activities.isEmpty
           ? const Center(child: Padding(
               padding: EdgeInsets.symmetric(vertical: 16.0),
