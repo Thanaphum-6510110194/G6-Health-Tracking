@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import  'dashboard.dart'; // Assuming you have a dashboard.dart file for the main app
 
 // --- Model Class for Exercise Activity ---
 class ExerciseActivity {
@@ -71,9 +71,10 @@ class HomeScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_new),
           onPressed: () {
             // ทำงานเมื่อหน้านี้ถูกเรียกมาจากหน้าอื่น
-            if (Navigator.canPop(context)) {
-              Navigator.of(context).pop();
-            }
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            );
           },
         ),
       ),
