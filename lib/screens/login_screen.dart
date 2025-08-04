@@ -92,10 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
             case 'invalid-email':
               _emailError = 'ไม่พบบัญชีผู้ใช้สำหรับอีเมลนี้';
               break;
-            case 'wrong-password':
-              _passwordError = 'รหัสผ่านไม่ถูกต้อง';
-              break;
-            // 'invalid-credential' เป็น error code ที่ใหม่กว่าและครอบคลุมทั้ง 2 กรณี
+
             case 'invalid-credential':
               _passwordError = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
               break;
