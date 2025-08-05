@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:health_tracking/screens/daily_habits.dart';
-import 'meal_logging.dart';
+
 
 const Color primaryColor = Color(0xFF0ABAB5);
 const Color secondaryColor = Color(0xFF56DFCF);
@@ -247,10 +246,10 @@ class DashboardScreen extends StatelessWidget {
               mainAxisSpacing: 15,
               childAspectRatio: 2.5, // Adjusts the height of the buttons
               children: <Widget>[
-                _buildActionButton(label: 'Log Water', context: context),
-                _buildActionButton(label: 'Add Meal', context: context),
-                _buildActionButton(label: 'Track Mood', context: context),
-                _buildActionButton(label: 'Log Exercise', context: context),
+                _buildActionButton(label: 'Log Water', context: context, routeName: '/daily_habits'),
+                _buildActionButton(label: 'Add Meal', context: context, routeName: '/meal_logging'),
+                _buildActionButton(label: 'Track Mood', context: context, routeName: null),
+                _buildActionButton(label: 'Log Exercise', context: context, routeName: '/daily_habits'),
               ],
             ),
           ],
@@ -259,34 +258,29 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton({required String label, required BuildContext context}) {
+  Widget _buildActionButton({
+    required String label,
+    required BuildContext context,
+    required String? routeName,
+    }) {
     return ElevatedButton(
       onPressed: () {
-        Widget? screenToNavigate;
-
-        if (label == 'Log Water') {
-          screenToNavigate = HabitTrackerApp();
-          
-        } else if (label == 'Add Meal') {
-          screenToNavigate = MealLoggingScreen();
-        } else if (label == 'Track Mood') {
-          // screenToNavigate = TrackMoodScreen();
-        } else if (label == 'Log Exercise') {
-          screenToNavigate = HabitTrackerApp(); // Placeholder for future screen
-          // screenToNavigate = LogExerciseScreen();
+        // ตรวจสอบว่า routeName ไม่ใช่ null ก่อนที่จะทำการ navigate
+        if (routeName != null) {
+          // เปลี่ยนจาก Navigator.push เป็น Navigator.pushNamed
+          Navigator.pushNamed(context, routeName);
         } else {
-          screenToNavigate = null;
-        }
-
-        if (screenToNavigate != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => screenToNavigate!),
+          // จัดการกรณีที่ยังไม่มีหน้าจอสำหรับปุ่มนั้นๆ
+          print('No route defined for: $label');
+          // อาจจะแสดง SnackBar หรือ Dialog แจ้งเตือนผู้ใช้
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('"$label" feature is coming soon!'),
+              backgroundColor: Colors.grey[700],
+            ),
           );
-        } else {
-          print('No specific screen found for: $label');
         }
-      },
+        },
       style: ElevatedButton.styleFrom(
         foregroundColor: primaryColor,
         backgroundColor: secondaryColor.withValues(alpha: 0.2),

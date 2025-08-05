@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import  'dashboard.dart'; // Assuming you have a dashboard.dart file for the main app
 
 // --- Model Class for Exercise Activity ---
 class ExerciseActivity {
@@ -68,10 +67,7 @@ class HomeScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF0ABAB5)),
           onPressed: () {
             // ทำงานเมื่อหน้านี้ถูกเรียกมาจากหน้าอื่น
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const DashboardScreen()),
-            );
+            Navigator.pop(context); // ย้อนกลับไปยังหน้าก่อนหน้า
           },
         ),
       ),
