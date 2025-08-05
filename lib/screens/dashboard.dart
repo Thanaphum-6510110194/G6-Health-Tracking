@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:health_tracking/screens/daily_habits.dart';
 import 'meal_logging.dart';
 
 const Color primaryColor = Color(0xFF0ABAB5);
@@ -264,12 +265,14 @@ class DashboardScreen extends StatelessWidget {
         Widget? screenToNavigate;
 
         if (label == 'Log Water') {
-          // screenToNavigate = LogWaterScreen();
+          screenToNavigate = HabitTrackerApp();
+          
         } else if (label == 'Add Meal') {
           screenToNavigate = MealLoggingScreen();
         } else if (label == 'Track Mood') {
           // screenToNavigate = TrackMoodScreen();
         } else if (label == 'Log Exercise') {
+          screenToNavigate = HabitTrackerApp(); // Placeholder for future screen
           // screenToNavigate = LogExerciseScreen();
         } else {
           screenToNavigate = null;

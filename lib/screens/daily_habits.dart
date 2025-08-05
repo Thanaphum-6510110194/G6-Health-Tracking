@@ -31,9 +31,6 @@ const Color cardBackgroundColor = Colors.white;
 const Color screenBackgroundColor = Color(0xFFF0F4F8);
 const Color secondaryTextColor = Colors.grey;
 
-void main() {
-  runApp(const HabitTrackerApp());
-}
 
 class HabitTrackerApp extends StatelessWidget {
   const HabitTrackerApp({super.key});
@@ -68,7 +65,7 @@ class HomeScreen extends StatelessWidget {
       // --- เพิ่ม AppBar สำหรับปุ่มย้อนกลับ ---
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF0ABAB5)),
           onPressed: () {
             // ทำงานเมื่อหน้านี้ถูกเรียกมาจากหน้าอื่น
             Navigator.pushReplacement(
