@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'lifestyle_habits.dart'; 
+import 'package:provider/provider.dart';
+import '../providers/auth_notifier.dart';
+import 'lifestyle_habits.dart';
 
 class AboutYourselfScreen extends StatefulWidget {
   const AboutYourselfScreen({super.key});
@@ -9,6 +11,24 @@ class AboutYourselfScreen extends StatefulWidget {
 }
 
 class _AboutYourselfScreenState extends State<AboutYourselfScreen> {
+  final TextEditingController _bioController = TextEditingController();
+  String? _selectedGoal;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+      await authNotifier.fetchAboutYourself();
+      final data = authNotifier.aboutYourselfData;
+      if (data != null) {
+        setState(() {
+          _selectedHealthDescription = data['healthDescription'];
+          _selectedHealthGoal = data['healthGoal'];
+        });
+      }
+    });
+  }
   String? _selectedHealthDescription;
   String? _selectedHealthGoal;
 
@@ -116,23 +136,23 @@ class _AboutYourselfScreenState extends State<AboutYourselfScreen> {
               width: double.infinity,
               height: 56,
               child: InkWell(
-                onTap: () {
-                  // Validate selections before navigating
+                onTap: () async {
+                  // Validate selections before saving
                   if (_selectedHealthDescription == null || _selectedHealthGoal == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Please select both health description and primary goal.')),
                     );
                     return;
                   }
-                  if (_selectedHealthGoal == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please select your primary health Zgoals.')),
-                    );
-                    return;
-                  }
+                  // Save about yourself using provider
+                  final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+                  await authNotifier.saveAboutYourself(
+                    healthDescription: _selectedHealthDescription,
+                    healthGoal: _selectedHealthGoal,
+                  );
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const LifestyleHabitsScreen()), // ต้องเปลี่ยนเป็นหน้าถัดไปที่ถูกต้อง
+                    MaterialPageRoute(builder: (context) => const LifestyleHabitsScreen()),
                   );
                 },
                 borderRadius: BorderRadius.circular(12),
@@ -158,7 +178,7 @@ class _AboutYourselfScreenState extends State<AboutYourselfScreen> {
                     ],
                   ),
                   child: const Text(
-                    'Next: Set Your Goals',
+                    'Next',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,

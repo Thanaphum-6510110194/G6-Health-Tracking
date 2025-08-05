@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_notifier.dart';
 import 'notification_screen.dart';
 
 class LifestyleHabitsScreen extends StatefulWidget {
@@ -9,6 +11,22 @@ class LifestyleHabitsScreen extends StatefulWidget {
 }
 
 class _LifestyleHabitsScreenState extends State<LifestyleHabitsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+      await authNotifier.fetchLifestyleHabits();
+      final data = authNotifier.lifestyleHabitsData;
+      if (data != null) {
+        setState(() {
+          _selectedSleepDuration = data['sleepDuration'];
+          _selectedWaterIntake = data['waterIntake'];
+          _selectedStressLevel = data['stressLevel'];
+        });
+      }
+    });
+  }
   String? _selectedSleepDuration;
   String? _selectedWaterIntake;
   String? _selectedStressLevel;
@@ -178,8 +196,8 @@ class _LifestyleHabitsScreenState extends State<LifestyleHabitsScreen> {
               width: double.infinity,
               height: 56,
               child: InkWell(
-                onTap: () {
-                  // Validate selections before navigating
+                onTap: () async {
+                  // Validate selections before saving
                   if (_selectedSleepDuration == null ||
                       _selectedWaterIntake == null ||
                       _selectedStressLevel == null) {
@@ -188,9 +206,11 @@ class _LifestyleHabitsScreenState extends State<LifestyleHabitsScreen> {
                     );
                     return;
                   }
-                  // TODO: Navigate to the next screen (e.g., GoalConfirmationScreen or SummaryScreen)
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Next: Lifestyle Habits completed!')),
+                  final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+                  await authNotifier.saveLifestyleHabits(
+                    sleepDuration: _selectedSleepDuration!,
+                    waterIntake: _selectedWaterIntake!,
+                    stressLevel: _selectedStressLevel!,
                   );
                   Navigator.push(
                     context,
@@ -220,7 +240,7 @@ class _LifestyleHabitsScreenState extends State<LifestyleHabitsScreen> {
                     ],
                   ),
                   child: const Text(
-                    'Next: Confirm Goals',
+                    'Next',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,

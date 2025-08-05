@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Import สำหรับ FilteringTextInputFormatter
+import 'package:provider/provider.dart';
+import '../providers/auth_notifier.dart';
 import 'about_yourself.dart'; // เพิ่ม import สำหรับ AboutYourselfScreen
 
 class PhysicalInfoScreen extends StatefulWidget {
@@ -10,9 +12,47 @@ class PhysicalInfoScreen extends StatefulWidget {
 }
 
 class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
+  // Load physical info from provider (Firestore)
+  Future<void> _loadPhysicalInfoFromProvider() async {
+    final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+    await authNotifier.fetchPhysicalInfo();
+    final data = authNotifier.physicalInfoData;
+    if (data != null) {
+      setState(() {
+        _weightController.text = data['weight']?.toString() ?? '';
+        _heightController.text = data['height']?.toString() ?? '';
+        _selectedActivityLevel = data['activityLevel'];
+      });
+    }
+  }
+
+  // Save physical info to provider (Firestore)
+  Future<void> _savePhysicalInfoToProvider() async {
+    final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+    try {
+      await authNotifier.savePhysicalInfo(
+        weight: _weightController.text,
+        height: _heightController.text,
+        activityLevel: _selectedActivityLevel,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving physical info: $e')),
+      );
+    }
+  }
   final TextEditingController _weightController = TextEditingController(); // เพิ่ม Controller สำหรับน้ำหนัก
   final TextEditingController _heightController = TextEditingController(); // เพิ่ม Controller สำหรับส่วนสูง
   String? _selectedActivityLevel; // ระดับกิจกรรมที่เลือก
+
+  @override
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPhysicalInfoFromProvider();
+    });
+  }
 
   @override
   void dispose() {
@@ -240,6 +280,8 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                     return;
                   }
 
+                  // Save physical info using provider
+                  _savePhysicalInfoToProvider();
                   // Navigate to AboutYourselfScreen if all conditions are met
                   Navigator.push(
                     context,
@@ -269,7 +311,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
                     ],
                   ),
                   child: const Text(
-                    'Next: About Yourself',
+                    'Next',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,

@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'dart:io'; // For File
 import 'package:image_picker/image_picker.dart'; // For picking images
 import 'package:path_provider/path_provider.dart'; // For finding local path
+import 'package:provider/provider.dart';
+import '../providers/auth_notifier.dart';
 import 'physical_info.dart'; // Import PhysicalInfoScreen
 import 'login_screen.dart'; // Import LoginScreen
 
@@ -20,10 +22,46 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
 
   File? _profileImageFile; // To store the selected image file locally
 
+  // Save profile data using provider
+  Future<void> _saveProfileToProvider() async {
+    final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+    final user = authNotifier.profileData;
+    // Save profile data via provider
+    try {
+      await authNotifier.saveProfileData(
+        fullName: _fullNameController.text,
+        dateOfBirth: _dateOfBirthController.text,
+        gender: _selectedGender,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving profile: $e')),
+      );
+    }
+  }
+
+  // Retrieve profile data from provider and populate fields
+  Future<void> _loadProfileFromProvider() async {
+    final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+    await authNotifier.fetchProfileData();
+    final data = authNotifier.profileData;
+    if (data != null) {
+      setState(() {
+        _fullNameController.text = data['fullName'] ?? '';
+        _dateOfBirthController.text = data['dateOfBirth'] ?? '';
+        _selectedGender = data['gender'];
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _loadProfileData(); // Load profile data including locally saved image
+    // Delay to ensure context is available for provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProfileFromProvider(); // Load profile data from provider if exists
+    });
   }
 
   // Function to load profile data (from SharedPreferences or Local Database)
@@ -439,7 +477,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
               width: double.infinity,
               height: 56,
               child: InkWell(
-                onTap: () {
+                onTap: () async {
                   // *** เพิ่มการตรวจสอบเงื่อนไขที่นี่ ***
                   if (_fullNameController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -459,6 +497,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                     );
                     return;
                   }
+
+                  // Save profile using provider
+                  await _saveProfileToProvider();
 
                   // Navigate to PhysicalInfoScreen if all conditions are met
                   Navigator.push(

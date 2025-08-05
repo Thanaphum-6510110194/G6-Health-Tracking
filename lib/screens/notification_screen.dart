@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_notifier.dart';
 import 'dashboard.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -9,6 +11,23 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+      await authNotifier.fetchNotificationSettings();
+      final data = authNotifier.notificationSettingsData;
+      if (data != null) {
+        setState(() {
+          _waterRemindersEnabled = data['waterRemindersEnabled'] ?? true;
+          _exerciseRemindersEnabled = data['exerciseRemindersEnabled'] ?? true;
+          _mealLoggingEnabled = data['mealLoggingEnabled'] ?? false;
+          _sleepRemindersEnabled = data['sleepRemindersEnabled'] ?? true;
+        });
+      }
+    });
+  }
   bool _waterRemindersEnabled = true;
   bool _exerciseRemindersEnabled = true;
   bool _mealLoggingEnabled = false;
@@ -146,8 +165,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               width: double.infinity,
               height: 56,
               child: InkWell(
-                onTap: () {
-                  // TODO: Implement logic to save notification settings and navigate to final screen
+                onTap: () async {
+                  final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+                  await authNotifier.saveNotificationSettings(
+                    waterRemindersEnabled: _waterRemindersEnabled,
+                    exerciseRemindersEnabled: _exerciseRemindersEnabled,
+                    mealLoggingEnabled: _mealLoggingEnabled,
+                    sleepRemindersEnabled: _sleepRemindersEnabled,
+                  );
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Notification settings saved!')),
                   );
