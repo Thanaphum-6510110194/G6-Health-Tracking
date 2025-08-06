@@ -3,6 +3,7 @@ import 'package:provider/provider.dart'; // เพิ่ม import provider
 import '../providers/auth_notifier.dart'; // เพิ่ม import AuthNotifier
 import 'profile_page.dart'; // ตรวจสอบว่า path ถูกต้อง
 import 'register_screen.dart'; // ตรวจสอบว่า path ถูกต้อง
+import 'dashboard.dart'; // ตรวจสอบว่า path ถูกต้อง
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -39,10 +40,18 @@ class LoginScreen extends StatelessWidget {
       // ตรวจสอบว่าล็อกอินสำเร็จหรือไม่
       if (!authNotifier.isLoading && authNotifier.emailError == null && authNotifier.passwordError == null) {
         // ถ้าไม่มีข้อผิดพลาดและไม่ได้อยู่ในสถานะโหลด แสดงว่าล็อกอินสำเร็จ
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const BasicProfileScreen()),
-        );
+        final isComplete = await authNotifier.isProfileSetupComplete();
+        if (isComplete) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const BasicProfileScreen()),
+          );
+        }
       }
     }
 

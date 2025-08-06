@@ -4,6 +4,30 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 
 class AuthNotifier extends ChangeNotifier {
+  /// Checks if all profile setup sections are filled for the current user.
+  Future<bool> isProfileSetupComplete() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+    final userId = user.uid;
+    final profileSections = [
+      'profile_data',
+      'physical_info',
+      'about_yourself',
+      'lifestyle_habits',
+      'notification_settings',
+    ];
+    final profileCollection = FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .collection('profile');
+    for (final section in profileSections) {
+      final doc = await profileCollection.doc(section).get();
+      if (!doc.exists) {
+        return false;
+      }
+    }
+    return true;
+  }
   // Notification Settings data
   Map<String, dynamic>? _notificationSettingsData;
   Map<String, dynamic>? get notificationSettingsData => _notificationSettingsData;
