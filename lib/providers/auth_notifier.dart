@@ -1,7 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart'; // เพิ่ม import สำหรับจัดรูปแบบวันที่
 import '../services/auth_service.dart';
+
+// --- Helper Model Class for Exercise Activity ---
+// คุณสามารถย้ายคลาสนี้ไปไว้ในไฟล์ model แยกต่างหากได้
+class ExerciseActivity {
+  String id;
+  String name;
+  TimeOfDay scheduledTime;
+  Duration goalDuration;
+
+  ExerciseActivity({
+    required this.id,
+    required this.name,
+    required this.scheduledTime,
+    required this.goalDuration,
+  });
+
+  // แปลง TimeOfDay เป็น String "HH:mm" เพื่อเก็บใน Firestore
+  static String _timeOfDayToString(TimeOfDay time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  // แปลง String "HH:mm" กลับเป็น TimeOfDay
+  static TimeOfDay _stringToTimeOfDay(String timeString) {
+    final parts = timeString.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+  }
+
+  // สร้าง instance จาก Map ของ Firestore
+  factory ExerciseActivity.fromMap(String id, Map<String, dynamic> map) {
+    return ExerciseActivity(
+      id: id,
+      name: map['name'] ?? 'Untitled',
+      scheduledTime: _stringToTimeOfDay(map['scheduledTime'] ?? '00:00'),
+      goalDuration: Duration(seconds: map['goalDurationInSeconds'] ?? 0),
+    );
+  }
+
+  // แปลง instance เป็น Map เพื่อบันทึกลง Firestore
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'scheduledTime': _timeOfDayToString(scheduledTime),
+      'goalDurationInSeconds': goalDuration.inSeconds,
+      'updatedAt': Timestamp.now(),
+    };
+  }
+}
+
 
 class AuthNotifier extends ChangeNotifier {
   /// Checks if all profile setup sections are filled for the current user.
@@ -17,9 +68,9 @@ class AuthNotifier extends ChangeNotifier {
       'notification_settings',
     ];
     final profileCollection = FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection('profile');
+        .collection('users')
+        .doc(userId)
+        .collection('profile');
     for (final section in profileSections) {
       final doc = await profileCollection.doc(section).get();
       if (!doc.exists) {
@@ -28,9 +79,207 @@ class AuthNotifier extends ChangeNotifier {
     }
     return true;
   }
+
+  // Helper to get today's date as a string 'YYYY-MM-DD'
+  String _getTodayDateString() {
+    return DateFormat('yyyy-MM-dd').format(DateTime.now());
+  }
+
+  //============================================================================
+  //  Water Intake Data Section
+  //============================================================================
+  int _dailyWaterCount = 0;
+  int get dailyWaterCount => _dailyWaterCount;
+
+  Future<void> fetchDailyWaterIntake() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final dateStr = _getTodayDateString();
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users').doc(user.uid)
+          .collection('daily_data').doc(dateStr)
+          .get();
+
+      if (doc.exists && doc.data()!.containsKey('water_intake')) {
+        _dailyWaterCount = doc.data()!['water_intake']['count'] ?? 0;
+      } else {
+        _dailyWaterCount = 0;
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching water intake: $e');
+    }
+  }
+
+  // *** FIX: Moved this function outside of fetchDailyWaterIntake ***
+  Future<void> saveDailyWaterIntake(int count) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    if (count < 0 || count > 8) return; // giới hạn số lượng nước
+
+    final dateStr = _getTodayDateString();
+    final waterData = {
+      'count': count,
+      'updatedAt': Timestamp.now(),
+    };
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users').doc(user.uid)
+          .collection('daily_data').doc(dateStr)
+          .set({'water_intake': waterData}, SetOptions(merge: true));
+
+      _dailyWaterCount = count;
+      notifyListeners();
+    } catch (e) {
+      print('Error saving water intake: $e');
+    }
+  }
+  Future<void> incrementWaterIntake() async {
+    final currentCount = _dailyWaterCount;
+    if (currentCount < 8) {
+      // เรียกใช้ฟังก์ชัน save ที่มีอยู่แล้วเพื่อบันทึกค่าใหม่
+      await saveDailyWaterIntake(currentCount + 1);
+    }
+  }
+
+  //============================================================================
+  //  Sleep Data Section
+  //============================================================================
+  Map<String, dynamic>? _latestSleepLog;
+  Map<String, dynamic>? get latestSleepLog => _latestSleepLog;
+
+  Future<void> fetchLatestSleepLog() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final dateStr = _getTodayDateString();
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users').doc(user.uid)
+          .collection('daily_data').doc(dateStr)
+          .get();
+
+      if (doc.exists && doc.data()!.containsKey('sleep_log')) {
+        _latestSleepLog = doc.data()!['sleep_log'];
+      } else {
+        _latestSleepLog = null;
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching sleep log: $e');
+    }
+  }
+
+  Future<void> saveSleepLog({
+    required TimeOfDay bedTime,
+    required TimeOfDay wakeTime,
+    required int starCount,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final dateStr = _getTodayDateString();
+
+    final sleepData = {
+      'bedTime': '${bedTime.hour}:${bedTime.minute}',
+      'wakeTime': '${wakeTime.hour}:${wakeTime.minute}',
+      'starCount': starCount,
+      'updatedAt': Timestamp.now(),
+    };
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users').doc(user.uid)
+          .collection('daily_data').doc(dateStr)
+          .set({'sleep_log': sleepData}, SetOptions(merge: true));
+
+      _latestSleepLog = sleepData;
+      notifyListeners();
+    } catch (e) {
+      print('Error saving sleep log: $e');
+    }
+  }
+
+  //============================================================================
+  //  Exercise Activities Section
+  //============================================================================
+  List<ExerciseActivity> _exerciseActivities = [];
+  List<ExerciseActivity> get exerciseActivities => _exerciseActivities;
+
+  Future<void> fetchExerciseActivities() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users').doc(user.uid)
+          .collection('exercise').doc('user_exercise') // Main doc for exercise settings
+          .collection('data_exercise') // Sub-collection for activities
+          .get();
+
+      _exerciseActivities = snapshot.docs.map((doc) {
+        return ExerciseActivity.fromMap(doc.id, doc.data());
+      }).toList();
+
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching exercise activities: $e');
+    }
+  }
+
+  Future<void> saveExerciseActivity(ExerciseActivity activity) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users').doc(user.uid)
+          .collection('exercise').doc('user_exercise')
+          .collection('data_exercise').doc(activity.id) // Use activity ID as doc ID
+          .set(activity.toMap());
+
+      // Update local list
+      final index = _exerciseActivities.indexWhere((a) => a.id == activity.id);
+      if (index != -1) {
+        _exerciseActivities[index] = activity;
+      } else {
+        _exerciseActivities.add(activity);
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Error saving exercise activity: $e');
+    }
+  }
+
+  Future<void> deleteExerciseActivity(String activityId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users').doc(user.uid)
+          .collection('exercise').doc('user_exercise')
+          .collection('data_exercise').doc(activityId)
+          .delete();
+
+      // Remove from local list
+      _exerciseActivities.removeWhere((a) => a.id == activityId);
+      notifyListeners();
+    } catch (e) {
+      print('Error deleting exercise activity: $e');
+    }
+  }
+
+  //============================================================================
+  //  Profile & Auth Section (Existing Code)
+  //============================================================================
+
   // Notification Settings data
   Map<String, dynamic>? _notificationSettingsData;
-  Map<String, dynamic>? get notificationSettingsData => _notificationSettingsData;
+  Map<String, dynamic>? get notificationSettingsData =>
+      _notificationSettingsData;
 
   Future<void> fetchNotificationSettings() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -42,11 +291,11 @@ class AuthNotifier extends ChangeNotifier {
     final userId = user.uid;
     try {
       final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('profile')
-        .doc('notification_settings')
-        .get();
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('notification_settings')
+          .get();
       if (doc.exists) {
         _notificationSettingsData = doc.data();
       } else {
@@ -77,25 +326,30 @@ class AuthNotifier extends ChangeNotifier {
       'updatedAt': Timestamp.now(),
     };
     if (_notificationSettingsData != null &&
-        _notificationSettingsData!['waterRemindersEnabled'] == waterRemindersEnabled &&
-        _notificationSettingsData!['exerciseRemindersEnabled'] == exerciseRemindersEnabled &&
-        _notificationSettingsData!['mealLoggingEnabled'] == mealLoggingEnabled &&
-        _notificationSettingsData!['sleepRemindersEnabled'] == sleepRemindersEnabled) {
+        _notificationSettingsData!['waterRemindersEnabled'] ==
+            waterRemindersEnabled &&
+        _notificationSettingsData!['exerciseRemindersEnabled'] ==
+            exerciseRemindersEnabled &&
+        _notificationSettingsData!['mealLoggingEnabled'] ==
+            mealLoggingEnabled &&
+        _notificationSettingsData!['sleepRemindersEnabled'] ==
+            sleepRemindersEnabled) {
       return;
     }
     try {
       await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('profile')
-        .doc('notification_settings')
-        .set(newNotificationSettings);
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('notification_settings')
+          .set(newNotificationSettings);
       _notificationSettingsData = newNotificationSettings;
       notifyListeners();
     } catch (e) {
       print('Error saving notification settings: $e');
     }
   }
+
   // Lifestyle Habits data
   Map<String, dynamic>? _lifestyleHabitsData;
   Map<String, dynamic>? get lifestyleHabitsData => _lifestyleHabitsData;
@@ -110,11 +364,11 @@ class AuthNotifier extends ChangeNotifier {
     final userId = user.uid;
     try {
       final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('profile')
-        .doc('lifestyle_habits')
-        .get();
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('lifestyle_habits')
+          .get();
       if (doc.exists) {
         _lifestyleHabitsData = doc.data();
       } else {
@@ -150,17 +404,18 @@ class AuthNotifier extends ChangeNotifier {
     }
     try {
       await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('profile')
-        .doc('lifestyle_habits')
-        .set(newLifestyleHabits);
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('lifestyle_habits')
+          .set(newLifestyleHabits);
       _lifestyleHabitsData = newLifestyleHabits;
       notifyListeners();
     } catch (e) {
       print('Error saving lifestyle habits: $e');
     }
   }
+
   // About Yourself data
   Map<String, dynamic>? _aboutYourselfData;
   Map<String, dynamic>? get aboutYourselfData => _aboutYourselfData;
@@ -175,11 +430,11 @@ class AuthNotifier extends ChangeNotifier {
     final userId = user.uid;
     try {
       final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('profile')
-        .doc('about_yourself')
-        .get();
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('about_yourself')
+          .get();
       if (doc.exists) {
         _aboutYourselfData = doc.data();
       } else {
@@ -212,17 +467,18 @@ class AuthNotifier extends ChangeNotifier {
     }
     try {
       await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('profile')
-        .doc('about_yourself')
-        .set(newAboutYourself);
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('about_yourself')
+          .set(newAboutYourself);
       _aboutYourselfData = newAboutYourself;
       notifyListeners();
     } catch (e) {
       print('Error saving about yourself: $e');
     }
   }
+
   // ข้อมูล Physical Info ของผู้ใช้ (สำหรับ Provider)
   Map<String, dynamic>? _physicalInfoData;
   Map<String, dynamic>? get physicalInfoData => _physicalInfoData;
@@ -238,11 +494,11 @@ class AuthNotifier extends ChangeNotifier {
     final userId = user.uid;
     try {
       final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('profile')
-        .doc('physical_info')
-        .get();
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('physical_info')
+          .get();
       if (doc.exists) {
         _physicalInfoData = doc.data();
       } else {
@@ -283,17 +539,18 @@ class AuthNotifier extends ChangeNotifier {
 
     try {
       await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('profile')
-        .doc('physical_info')
-        .set(newPhysicalInfo);
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('physical_info')
+          .set(newPhysicalInfo);
       _physicalInfoData = newPhysicalInfo;
       notifyListeners();
     } catch (e) {
       print('Error saving physical info: $e');
     }
   }
+
   // บันทึกข้อมูลโปรไฟล์ไปยัง Firestore สำหรับผู้ใช้ที่ล็อกอิน
   Future<void> saveProfileData({
     required String fullName,
@@ -321,17 +578,18 @@ class AuthNotifier extends ChangeNotifier {
 
     try {
       await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('profile')
-        .doc('profile_data')
-        .set(newProfileData);
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('profile_data')
+          .set(newProfileData);
       _profileData = newProfileData;
       notifyListeners();
     } catch (e) {
       print('Error saving profile data: $e');
     }
   }
+
   // ข้อมูลโปรไฟล์ของผู้ใช้ (สำหรับ Provider)
   Map<String, dynamic>? _profileData;
   Map<String, dynamic>? get profileData => _profileData;
@@ -347,11 +605,11 @@ class AuthNotifier extends ChangeNotifier {
     final userId = user.uid;
     try {
       final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('profile')
-        .doc('profile_data')
-        .get();
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('profile_data')
+          .get();
       if (doc.exists) {
         _profileData = doc.data();
       } else {
@@ -364,6 +622,7 @@ class AuthNotifier extends ChangeNotifier {
       notifyListeners();
     }
   }
+
   // Instance ของ AuthService สำหรับเรียกใช้ Firebase Auth
   final AuthService _authService = AuthService();
 
@@ -396,7 +655,7 @@ class AuthNotifier extends ChangeNotifier {
   // ฟังก์ชันสำหรับจัดการการเข้าสู่ระบบ
   Future<void> login(String email, String password) async {
     _setLoading(true); // เริ่มโหลด
-    _clearErrors();    // ล้างข้อผิดพลาดเก่า
+    _clearErrors(); // ล้างข้อผิดพลาดเก่า
 
     try {
       await _authService.login(email, password);
@@ -418,10 +677,11 @@ class AuthNotifier extends ChangeNotifier {
     required String password,
   }) async {
     _setLoading(true); // เริ่มโหลด
-    _clearErrors();    // ล้างข้อผิดพลาดเก่า
+    _clearErrors(); // ล้างข้อผิดพลาดเก่า
 
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
       );
