@@ -34,9 +34,10 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home : const SplashScreen(),
+      initialRoute: '/',
 
       routes: {
+        '/': (context) => const SplashScreen(),
         '/dashboard': (context) => const DashboardScreen(),
         '/daily_habits': (context) => const HomeScreen(),
         '/meal_logging': (context) => const MealLoggingScreen(),
