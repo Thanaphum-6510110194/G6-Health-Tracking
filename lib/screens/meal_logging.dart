@@ -42,6 +42,16 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // --- เพิ่ม AppBar สำหรับปุ่มย้อนกลับ ---
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF0ABAB5)),
+          onPressed: () {
+            // ทำงานเมื่อหน้านี้ถูกเรียกมาจากหน้าอื่น
+            Navigator.pop(context); // ย้อนกลับไปยังหน้าก่อนหน้า
+          },
+        ),
+      ),
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(

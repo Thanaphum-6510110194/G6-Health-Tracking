@@ -11,8 +11,6 @@ class AboutYourselfScreen extends StatefulWidget {
 }
 
 class _AboutYourselfScreenState extends State<AboutYourselfScreen> {
-  final TextEditingController _bioController = TextEditingController();
-  String? _selectedGoal;
 
   @override
   void initState() {

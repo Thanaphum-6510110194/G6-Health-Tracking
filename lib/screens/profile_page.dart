@@ -25,7 +25,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   // Save profile data using provider
   Future<void> _saveProfileToProvider() async {
     final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
-    final user = authNotifier.profileData;
+
     // Save profile data via provider
     try {
       await authNotifier.saveProfileData(
