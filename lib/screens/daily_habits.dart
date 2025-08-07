@@ -1,24 +1,9 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-// --- Model Class for Exercise Activity ---
-class ExerciseActivity {
-  String id;
-  String name;
-  TimeOfDay scheduledTime;
-  Duration goalDuration;
-  Duration remainingDuration;
-  bool isRunning = false;
-  Timer? timer;
-
-  ExerciseActivity({
-    required this.name,
-    required this.scheduledTime,
-    required this.goalDuration,
-  })  : id = UniqueKey().toString(),
-        remainingDuration = goalDuration;
-}
+import 'package:provider/provider.dart'; // เพิ่ม import
+import '../providers/auth_notifier.dart'; // เพิ่ม import
+import '../models/exercise_activity.dart'; // เพิ่ม import สำหรับ ExerciseActivity
 
 
 // กำหนดค่าสีหลักตามที่คุณต้องการ
@@ -119,39 +104,48 @@ class WaterIntakeCard extends StatefulWidget {
 }
 
 class _WaterIntakeCardState extends State<WaterIntakeCard> {
-  int _waterCount = 0;
+  // ไม่ต้องใช้ _waterCount แล้ว
+  // int _waterCount = 0;
 
-  void _addWater() {
-    if (_waterCount < 8) {
-      setState(() {
-        _waterCount++;
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AuthNotifier>(context, listen: false).fetchDailyWaterIntake();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return HabitCard(
-      icon: Icons.water_drop,
-      title: 'Water Intake',
-      subtitle: '$_waterCount of 8 glasses',
-      buttonText: '+ Add',
-      onPressed: _addWater,
-      child: Wrap(
-        spacing: 12.0, 
-        runSpacing: 12.0,
-        alignment: WrapAlignment.center,
-        children: List.generate(8, (index) {
-          return Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: index < _waterCount ? primaryColor : Colors.grey.shade200,
-              shape: BoxShape.circle,
-            ),
-          );
-        }),
-      ),
+    return Consumer<AuthNotifier>(
+      builder: (context, notifier, child) {
+        // ดึงค่า waterCount มาจาก notifier
+        final waterCount = notifier.dailyWaterCount;
+
+        return HabitCard(
+          icon: Icons.water_drop,
+          title: 'Water Intake',
+          subtitle: '$waterCount of 8 glasses',
+          buttonText: '+ Add',
+          onPressed: () => notifier.incrementWaterIntake(), // แก้ไขตรงนี้
+          child: Wrap(
+            spacing: 12.0,
+            runSpacing: 12.0,
+            alignment: WrapAlignment.center,
+            children: List.generate(8, (index) {
+              return Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  // ใช้ waterCount จาก notifier ในการแสดงผล
+                  color: index < waterCount ? primaryColor : Colors.grey.shade200,
+                  shape: BoxShape.circle,
+                ),
+              );
+            }),
+          ),
+        );
+      },
     );
   }
 }
@@ -165,17 +159,30 @@ class ExerciseCard extends StatefulWidget {
 }
 
 class _ExerciseCardState extends State<ExerciseCard> {
-  final List<ExerciseActivity> _activities = [];
   String? _expandedActivityId;
 
+  // **** เพิ่ม initState สำหรับดึงข้อมูล ****
   @override
-  void dispose() {
-    for (var activity in _activities) {
-      activity.timer?.cancel();
-    }
-    super.dispose();
+  void initState() {
+    super.initState();
+    // ดึงข้อมูลครั้งแรกเมื่อ Widget ถูกสร้างขึ้น
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AuthNotifier>(context, listen: false).fetchExerciseActivities();
+    });
   }
 
+  // **** แก้ไข dispose ให้ถูกต้อง ****
+  @override
+  void dispose() {
+    // หยุดการทำงานของ Timer ทั้งหมดเพื่อป้องกัน memory leak
+    final activities = Provider.of<AuthNotifier>(context, listen: false).exerciseActivities;
+    for (var activity in activities) {
+      activity.timer?.cancel();
+    }
+    super.dispose(); // เรียก super.dispose() เป็นลำดับสุดท้าย
+  }
+
+  // --- ฟังก์ชันที่เหลือเหมือนเดิม ---
   void _toggleTimer(ExerciseActivity activity) {
     if (activity.isRunning) {
       activity.timer?.cancel();
@@ -211,13 +218,9 @@ class _ExerciseCardState extends State<ExerciseCard> {
       activity.remainingDuration = activity.goalDuration;
     });
   }
-  
+
   void _deleteActivity(String id) {
-      final activity = _activities.firstWhere((act) => act.id == id);
-      activity.timer?.cancel();
-      setState(() {
-        _activities.removeWhere((act) => act.id == id);
-      });
+    Provider.of<AuthNotifier>(context, listen: false).deleteExerciseActivity(id);
   }
 
   Future<void> _showActivityDialog({ExerciseActivity? activity}) async {
@@ -225,7 +228,6 @@ class _ExerciseCardState extends State<ExerciseCard> {
     final nameController = TextEditingController(text: activity?.name ?? '');
     TimeOfDay selectedTime = activity?.scheduledTime ?? TimeOfDay.now();
     Duration selectedDuration = activity?.goalDuration ?? const Duration(minutes: 10);
-
 
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -255,7 +257,6 @@ class _ExerciseCardState extends State<ExerciseCard> {
                               color: CupertinoColors.systemBackground.resolveFrom(builderContext),
                               child: Column(
                                 children: [
-                                  // FIX: Use Expanded to make the picker flexible and avoid overflow.
                                   Expanded(
                                     child: CupertinoTimerPicker(
                                       mode: CupertinoTimerPickerMode.hms,
@@ -321,20 +322,24 @@ class _ExerciseCardState extends State<ExerciseCard> {
     );
 
     if (result != null) {
-      setState(() {
-        if (isEditing) {
-          activity.name = result['name'];
-          activity.goalDuration = result['duration'];
-          activity.scheduledTime = result['time'];
-          _resetTimer(activity);
-        } else {
-          _activities.add(ExerciseActivity(
-            name: result['name'],
-            goalDuration: result['duration'],
-            scheduledTime: result['time'],
-          ));
-        }
-      });
+      final notifier = Provider.of<AuthNotifier>(context, listen: false);
+      if (isEditing) {
+        // อัปเดต activity ที่มีอยู่
+        activity.name = result['name'];
+        activity.goalDuration = result['duration'];
+        activity.scheduledTime = result['time'];
+        _resetTimer(activity); // รีเซ็ต timer
+        notifier.saveExerciseActivity(activity); // บันทึกการเปลี่ยนแปลง
+      } else {
+        // สร้าง activity ใหม่
+        final newActivity = ExerciseActivity(
+          id: UniqueKey().toString(), // สร้าง ID ใหม่
+          name: result['name'],
+          goalDuration: result['duration'],
+          scheduledTime: result['time'],
+        );
+        notifier.saveExerciseActivity(newActivity);
+      }
     }
   }
 
@@ -347,46 +352,53 @@ class _ExerciseCardState extends State<ExerciseCard> {
 
   @override
   Widget build(BuildContext context) {
-    return HabitCard(
-      icon: Icons.directions_run,
-      title: 'Exercise',
-      subtitle: '${_activities.length} activities planned',
-      buttonText: '+ Add',
-      onPressed: () => _showActivityDialog(), //-- กดเพื่อ Add
-      child: _activities.isEmpty
-          ? const Center(child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
-              child: Text('No activities added yet.', style: TextStyle(color: secondaryTextColor)),
-            ))
-          : ExpansionPanelList.radio(
-              elevation: 0,
-              expandedHeaderPadding: EdgeInsets.zero,
-              dividerColor: Colors.transparent,
-              initialOpenPanelValue: _expandedActivityId,
-              expansionCallback: (int index, bool isExpanded) {
-                setState(() {
-                  if (_expandedActivityId == _activities[index].id) {
-                    _expandedActivityId = null;
-                  } else {
-                    _expandedActivityId = _activities[index].id;
-                  }
-                });
-              },
-              children: _activities.map<ExpansionPanelRadio>((activity) {
-                return ExpansionPanelRadio(
-                  value: activity.id,
-                  backgroundColor: cardBackgroundColor,
-                  canTapOnHeader: true,
-                  headerBuilder: (context, isExpanded) {
-                    return ListTile(
-                      title: Text(activity.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      trailing: Text(activity.scheduledTime.format(context), style: const TextStyle(color: secondaryTextColor, fontSize: 14)),
-                    );
+    return Consumer<AuthNotifier>(
+      builder: (context, notifier, child) {
+        final activities = notifier.exerciseActivities;
+
+        return HabitCard(
+          icon: Icons.directions_run,
+          title: 'Exercise',
+          subtitle: '${activities.length} activities planned',
+          buttonText: '+ Add',
+          onPressed: () => _showActivityDialog(),
+          child: activities.isEmpty
+              ? const Center(
+                  child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Text('No activities added yet.', style: TextStyle(color: secondaryTextColor)),
+                ))
+              : ExpansionPanelList.radio(
+                  elevation: 0,
+                  expandedHeaderPadding: EdgeInsets.zero,
+                  dividerColor: Colors.transparent,
+                  initialOpenPanelValue: _expandedActivityId,
+                  expansionCallback: (int index, bool isExpanded) {
+                    setState(() {
+                      if (_expandedActivityId == activities[index].id) {
+                        _expandedActivityId = null;
+                      } else {
+                        _expandedActivityId = activities[index].id;
+                      }
+                    });
                   },
-                  body: _buildExpandedActivityBody(activity),
-                );
-              }).toList(),
-            ),
+                  children: activities.map<ExpansionPanelRadio>((activity) {
+                    return ExpansionPanelRadio(
+                      value: activity.id,
+                      backgroundColor: cardBackgroundColor,
+                      canTapOnHeader: true,
+                      headerBuilder: (context, isExpanded) {
+                        return ListTile(
+                          title: Text(activity.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          trailing: Text(activity.scheduledTime.format(context), style: const TextStyle(color: secondaryTextColor, fontSize: 14)),
+                        );
+                      },
+                      body: _buildExpandedActivityBody(activity),
+                    );
+                  }).toList(),
+                ),
+        );
+      },
     );
   }
 
@@ -428,7 +440,6 @@ class _ExerciseCardState extends State<ExerciseCard> {
   }
 }
 
-
 // --- Widget สำหรับการ์ดนอนหลับ (Stateful with sleep calculation) ---
 class SleepCard extends StatefulWidget {
   const SleepCard({super.key});
@@ -437,10 +448,19 @@ class SleepCard extends StatefulWidget {
   State<SleepCard> createState() => _SleepCardState();
 }
 
-class _SleepCardState extends State<SleepCard> {
-  Duration _sleepDuration = Duration.zero;
-  int _starCount = 0;
+// lib/screens/daily_habits.dart
 
+class _SleepCardState extends State<SleepCard> {
+  @override
+  void initState() {
+    super.initState();
+    // 1. ดึงข้อมูลการนอนหลับจาก Firebase
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AuthNotifier>(context, listen: false).fetchLatestSleepLog();
+    });
+  }
+
+  // --- Helper Functions (ยังคงเหมือนเดิม) ---
   String _formatSleepDuration(Duration d) {
     if (d == Duration.zero) return 'No sleep logged';
     final hours = d.inHours;
@@ -451,7 +471,7 @@ class _SleepCardState extends State<SleepCard> {
   int _calculateStars(Duration duration) {
     final hours = duration.inHours;
     if (hours > 10) return 2;
-    if (hours >= 8) return 5; // This now covers 8, 9, 10
+    if (hours >= 8) return 5;
     if (hours >= 6) return 4;
     if (hours >= 5) return 3;
     if (hours >= 3) return 2;
@@ -459,13 +479,27 @@ class _SleepCardState extends State<SleepCard> {
     return 0;
   }
 
+
+  // --- แก้ไขฟังก์ชันนี้ ---
   Future<void> _showSleepLogDialog() async {
-    TimeOfDay? bedTime = const TimeOfDay(hour: 22, minute: 0);
-    TimeOfDay? wakeTime = const TimeOfDay(hour: 6, minute: 0);
+    // กำหนดค่าเริ่มต้นสำหรับ TimePicker
+    TimeOfDay initialBedTime = const TimeOfDay(hour: 22, minute: 0);
+    TimeOfDay initialWakeTime = const TimeOfDay(hour: 6, minute: 0);
+
+    // ลองดึงข้อมูลล่าสุดจาก notifier มาเป็นค่าเริ่มต้น
+    final existingLog = Provider.of<AuthNotifier>(context, listen: false).latestSleepLog;
+    if (existingLog != null) {
+        final bedTimeParts = (existingLog['bedTime'] as String).split(':');
+        final wakeTimeParts = (existingLog['wakeTime'] as String).split(':');
+        initialBedTime = TimeOfDay(hour: int.parse(bedTimeParts[0]), minute: int.parse(bedTimeParts[1]));
+        initialWakeTime = TimeOfDay(hour: int.parse(wakeTimeParts[0]), minute: int.parse(wakeTimeParts[1]));
+    }
 
     final result = await showDialog<Map<String, TimeOfDay>>(
       context: context,
       builder: (context) {
+        TimeOfDay bedTime = initialBedTime;
+        TimeOfDay wakeTime = initialWakeTime;
         return StatefulBuilder(builder: (context, setDialogState) {
           return AlertDialog(
             title: const Text('Log Your Sleep'),
@@ -474,10 +508,10 @@ class _SleepCardState extends State<SleepCard> {
               children: [
                 ListTile(
                   title: const Text('Bedtime'),
-                  subtitle: Text(bedTime!.format(context)),
+                  subtitle: Text(bedTime.format(context)),
                   trailing: const Icon(Icons.nightlight_round),
                   onTap: () async {
-                    final picked = await showTimePicker(context: context, initialTime: bedTime!);
+                    final picked = await showTimePicker(context: context, initialTime: bedTime);
                     if (picked != null) {
                       setDialogState(() => bedTime = picked);
                     }
@@ -485,10 +519,10 @@ class _SleepCardState extends State<SleepCard> {
                 ),
                 ListTile(
                   title: const Text('Wake-up Time'),
-                  subtitle: Text(wakeTime!.format(context)),
+                  subtitle: Text(wakeTime.format(context)),
                   trailing: const Icon(Icons.wb_sunny),
                   onTap: () async {
-                    final picked = await showTimePicker(context: context, initialTime: wakeTime!);
+                    final picked = await showTimePicker(context: context, initialTime: wakeTime);
                     if (picked != null) {
                       setDialogState(() => wakeTime = picked);
                     }
@@ -500,7 +534,7 @@ class _SleepCardState extends State<SleepCard> {
               TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop({'bedTime': bedTime!, 'wakeTime': wakeTime!});
+                  Navigator.of(context).pop({'bedTime': bedTime, 'wakeTime': wakeTime});
                 },
                 child: const Text('Save'),
               ),
@@ -510,71 +544,106 @@ class _SleepCardState extends State<SleepCard> {
       },
     );
 
+    // --- ส่วนที่แก้ไขและเพิ่มเติม ---
     if (result != null) {
       final bed = result['bedTime']!;
       final wake = result['wakeTime']!;
-      
+
+      // 1. คำนวณ DateTime และ Duration ภายในฟังก์ชันนี้
       final now = DateTime.now();
       DateTime bedDateTime = DateTime(now.year, now.month, now.day, bed.hour, bed.minute);
       DateTime wakeDateTime = DateTime(now.year, now.month, now.day, wake.hour, wake.minute);
 
+      // จัดการกรณีการนอนข้ามวัน
       if (wakeDateTime.isBefore(bedDateTime) || wakeDateTime.isAtSameMomentAs(bedDateTime)) {
         wakeDateTime = wakeDateTime.add(const Duration(days: 1));
       }
 
-      setState(() {
-        _sleepDuration = wakeDateTime.difference(bedDateTime);
-        _starCount = _calculateStars(_sleepDuration);
-      });
+      final duration = wakeDateTime.difference(bedDateTime);
+
+      // 2. เรียก notifier เพื่อบันทึกข้อมูลด้วยค่าที่คำนวณแล้ว
+      final notifier = Provider.of<AuthNotifier>(context, listen: false);
+      await notifier.saveSleepLog(
+        bedTime: bed,
+        wakeTime: wake,
+        starCount: _calculateStars(duration), // ส่งค่าดาวที่คำนวณจาก duration ใหม่
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return HabitCard(
-      icon: Icons.bedtime,
-      title: 'Sleep',
-      subtitle: _formatSleepDuration(_sleepDuration),
-      buttonText: 'Update', 
-      onPressed: () => _showSleepLogDialog(),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Quality', style: TextStyle(fontSize: 16, color: textColor)),
-                Row(children: List.generate(5, (index) {
-                  return Icon(
-                    index < _starCount ? Icons.star : Icons.star_border,
-                    color: Colors.amber.shade400,
-                    size: 24,
-                  );
-                })),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _showSleepLogDialog,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 12),
+    return Consumer<AuthNotifier>(
+      builder: (context, notifier, child) {
+        // ดึงข้อมูลจาก notifier
+        final sleepLog = notifier.latestSleepLog;
+        Duration sleepDuration = Duration.zero;
+        int starCount = 0;
+
+        // Logic การคำนวณใน build method ยังคงถูกต้องสำหรับ "การแสดงผล"
+        if (sleepLog != null) {
+          final bedTimeParts = (sleepLog['bedTime'] as String).split(':');
+          final wakeTimeParts = (sleepLog['wakeTime'] as String).split(':');
+          final bed = TimeOfDay(hour: int.parse(bedTimeParts[0]), minute: int.parse(bedTimeParts[1]));
+          final wake = TimeOfDay(hour: int.parse(wakeTimeParts[0]), minute: int.parse(wakeTimeParts[1]));
+
+          final now = DateTime.now();
+          DateTime bedDateTime = DateTime(now.year, now.month, now.day, bed.hour, bed.minute);
+          DateTime wakeDateTime = DateTime(now.year, now.month, now.day, wake.hour, wake.minute);
+          if (wakeDateTime.isBefore(bedDateTime) || wakeDateTime.isAtSameMomentAs(bedDateTime)) {
+            wakeDateTime = wakeDateTime.add(const Duration(days: 1));
+          }
+          sleepDuration = wakeDateTime.difference(bedDateTime);
+          starCount = sleepLog['starCount'] ?? 0;
+        }
+
+        return HabitCard(
+          icon: Icons.bedtime,
+          title: 'Sleep',
+          subtitle: _formatSleepDuration(sleepDuration),
+          buttonText: 'Update',
+          onPressed: _showSleepLogDialog,
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Quality', style: TextStyle(fontSize: 16, color: textColor)),
+                    Row(
+                      children: List.generate(5, (index) {
+                        return Icon(
+                          index < starCount ? Icons.star : Icons.star_border,
+                          color: Colors.amber.shade400,
+                          size: 24,
+                        );
+                      }),
+                    ),
+                  ],
+                ),
               ),
-              child: const Text('Log Sleep', style: TextStyle(color: textOnButtonColor, fontSize: 16)),
-            ),
-          )
-        ],
-      ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _showSleepLogDialog,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: const Text('Log Sleep', style: TextStyle(color: textOnButtonColor, fontSize: 16)),
+                ),
+              )
+            ],
+          ),
+        );
+      },
     );
   }
 }
-
 // --- Widget การ์ดหลัก (Reusable) ---
 class HabitCard extends StatelessWidget {
   final IconData icon;

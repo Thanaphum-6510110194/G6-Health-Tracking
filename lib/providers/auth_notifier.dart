@@ -3,56 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart'; // เพิ่ม import สำหรับจัดรูปแบบวันที่
 import '../services/auth_service.dart';
+import '../models/exercise_activity.dart';
 
 // --- Helper Model Class for Exercise Activity ---
 // คุณสามารถย้ายคลาสนี้ไปไว้ในไฟล์ model แยกต่างหากได้
-class ExerciseActivity {
-  String id;
-  String name;
-  TimeOfDay scheduledTime;
-  Duration goalDuration;
-
-  ExerciseActivity({
-    required this.id,
-    required this.name,
-    required this.scheduledTime,
-    required this.goalDuration,
-  });
-
-  // แปลง TimeOfDay เป็น String "HH:mm" เพื่อเก็บใน Firestore
-  static String _timeOfDayToString(TimeOfDay time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
-
-  // แปลง String "HH:mm" กลับเป็น TimeOfDay
-  static TimeOfDay _stringToTimeOfDay(String timeString) {
-    final parts = timeString.split(':');
-    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-  }
-
-  // สร้าง instance จาก Map ของ Firestore
-  factory ExerciseActivity.fromMap(String id, Map<String, dynamic> map) {
-    return ExerciseActivity(
-      id: id,
-      name: map['name'] ?? 'Untitled',
-      scheduledTime: _stringToTimeOfDay(map['scheduledTime'] ?? '00:00'),
-      goalDuration: Duration(seconds: map['goalDurationInSeconds'] ?? 0),
-    );
-  }
-
-  // แปลง instance เป็น Map เพื่อบันทึกลง Firestore
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'scheduledTime': _timeOfDayToString(scheduledTime),
-      'goalDurationInSeconds': goalDuration.inSeconds,
-      'updatedAt': Timestamp.now(),
-    };
-  }
-}
-
 
 class AuthNotifier extends ChangeNotifier {
   /// Checks if all profile setup sections are filled for the current user.
@@ -208,19 +162,23 @@ class AuthNotifier extends ChangeNotifier {
   List<ExerciseActivity> _exerciseActivities = [];
   List<ExerciseActivity> get exerciseActivities => _exerciseActivities;
 
+  // Helper function to get the correct collection reference
+  CollectionReference _getExerciseCollection(String uid) {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('data_exercise'); // <-- Path ที่ง่ายและตรงไปตรงมาขึ้น
+  }
+
   Future<void> fetchExerciseActivities() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
     try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('users').doc(user.uid)
-          .collection('exercise').doc('user_exercise') // Main doc for exercise settings
-          .collection('data_exercise') // Sub-collection for activities
-          .get();
+      final snapshot = await _getExerciseCollection(user.uid).get();
 
       _exerciseActivities = snapshot.docs.map((doc) {
-        return ExerciseActivity.fromMap(doc.id, doc.data());
+        return ExerciseActivity.fromMap(doc.id, doc.data() as Map<String, dynamic>);
       }).toList();
 
       notifyListeners();
@@ -234,13 +192,10 @@ class AuthNotifier extends ChangeNotifier {
     if (user == null) return;
 
     try {
-      await FirebaseFirestore.instance
-          .collection('users').doc(user.uid)
-          .collection('exercise').doc('user_exercise')
-          .collection('data_exercise').doc(activity.id) // Use activity ID as doc ID
-          .set(activity.toMap());
+      // ใช้ ID ของ activity เป็น ID ของ document
+      await _getExerciseCollection(user.uid).doc(activity.id).set(activity.toMap());
 
-      // Update local list
+      // Update local list to reflect changes immediately
       final index = _exerciseActivities.indexWhere((a) => a.id == activity.id);
       if (index != -1) {
         _exerciseActivities[index] = activity;
@@ -258,11 +213,7 @@ class AuthNotifier extends ChangeNotifier {
     if (user == null) return;
 
     try {
-      await FirebaseFirestore.instance
-          .collection('users').doc(user.uid)
-          .collection('exercise').doc('user_exercise')
-          .collection('data_exercise').doc(activityId)
-          .delete();
+      await _getExerciseCollection(user.uid).doc(activityId).delete();
 
       // Remove from local list
       _exerciseActivities.removeWhere((a) => a.id == activityId);
