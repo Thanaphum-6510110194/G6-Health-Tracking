@@ -34,14 +34,14 @@ class HabitTrackerApp extends StatelessWidget {
           iconTheme: IconThemeData(color: textColor),
         ),
       ),
-      home: const HomeScreen(),
+      home: const DailyHabitsScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class DailyHabitsScreen extends StatelessWidget {
+  const DailyHabitsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

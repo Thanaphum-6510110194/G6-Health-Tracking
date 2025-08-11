@@ -1,11 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../services/user_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_notifier.dart';
 
 
 const Color primaryColor = Color(0xFF0ABAB5);
 const Color secondaryColor = Color(0xFF56DFCF);
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // ดึงน้ำหนักวันนี้เมื่อเข้า Dashboard
+    Future.microtask(() => Provider.of<AuthNotifier>(context, listen: false).fetchTodayWeight());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,19 +34,12 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                // --- Section 1: Top Header ---
                 _buildHeader(),
                 const SizedBox(height: 20),
-
-                // --- Section 2: Health Metric Cards ---
                 _buildHealthMetricCards(),
                 const SizedBox(height: 20),
-
-                // --- Section 3: Today's Progress ---
                 _buildProgressSection(),
                 const SizedBox(height: 20),
-
-                // --- Section 4: Quick Actions ---
                 _buildQuickActions(context),
               ],
             ),
@@ -41,110 +50,142 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              'Good Morning, Alex!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    String getGreeting() {
+      final hour = DateTime.now().hour;
+      if (hour < 12) return 'Good morning';
+      if (hour < 17) return 'Good afternoon';
+      return 'Good evening';
+    }
+    final today = DateFormat('EEEE, MMM d, yyyy').format(DateTime.now());
+    return FutureBuilder<String?>(
+      future: fetchUserName(),
+      builder: (context, snapshot) {
+        final name = snapshot.data ?? '';
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${getGreeting()}${name.isNotEmpty ? ', $name!' : '!'}',
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Today • $today',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
             ),
-            SizedBox(height: 4),
-            Text(
-              'Today • March 15, 2024',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          ],
-        ),
-        // The profile picture placeholder
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: primaryColor,
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: const Center(
-            child: Text(
-              'A',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            // The profile picture placeholder (first letter of name or ?)
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Center(
+                child: Text(
+                  name.isNotEmpty ? name[0].toUpperCase() : '?',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
   Widget _buildHealthMetricCards() {
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: _buildMetricCard(
-            icon: Icons.water_drop,
-            value: '6/8',
-            unit: 'Glasses today',
-            iconColor: primaryColor,
-            cardColor: secondaryColor.withValues(alpha: 0.2),
-          ),
-        ),
-        const SizedBox(width: 15),
-        Expanded(
-          child: _buildMetricCard(
-            icon: Icons.directions_run,
-            value: '7,234',
-            unit: 'Steps today',
-            iconColor: primaryColor,
-            cardColor: secondaryColor.withValues(alpha: 0.2),
-          ),
-        ),
-      ],
+    return Consumer<AuthNotifier>(
+      builder: (context, auth, _) {
+        final weight = auth.todayWeight;
+        return Row(
+          children: <Widget>[
+            Expanded(
+              child: Card(
+                color: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: secondaryColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Icon(Icons.monitor_weight, color: primaryColor, size: 30),
+                      ),
+                      const SizedBox(height: 15),
+                      Text(
+                        weight != null ? weight.toStringAsFixed(1) : '--',
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text('น้ำหนักวันนี้ (kg)', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final controller = TextEditingController();
+                          final result = await showDialog<double>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('บันทึกน้ำหนักวันนี้'),
+                              content: TextField(
+                                controller: controller,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                decoration: const InputDecoration(labelText: 'น้ำหนัก (kg)'),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('ยกเลิก'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    final value = double.tryParse(controller.text);
+                                    if (value != null && value > 0) {
+                                      Navigator.pop(context, value);
+                                    }
+                                  },
+                                  child: const Text('บันทึก'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (result != null) {
+                            await auth.saveTodayWeight(result);
+                          }
+                        },
+                        child: const Text('บันทึกน้ำหนัก'),
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: primaryColor,
+                          backgroundColor: secondaryColor.withOpacity(0.2),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildMetricCard({
-    required IconData icon,
-    required String value,
-    required String unit,
-    required Color iconColor,
-    required Color cardColor,
-  }) {
-    return Card(
-      color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Icon(icon, color: iconColor, size: 30),
-            ),
-            const SizedBox(height: 15),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              unit,
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildProgressSection() {
     return Card(

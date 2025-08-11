@@ -36,7 +36,7 @@ class ExerciseActivity {
   // สร้าง instance จาก Map ของ Firestore
   factory ExerciseActivity.fromMap(String id, Map<String, dynamic> map) {
     return ExerciseActivity(
-      id: id,
+      id: id, // id เป็น yyyy-MM-dd
       name: map['name'] ?? 'Untitled',
       scheduledTime: _stringToTimeOfDay(map['scheduledTime'] ?? '00:00'),
       goalDuration: Duration(seconds: map['goalDurationInSeconds'] ?? 0),

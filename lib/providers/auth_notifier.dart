@@ -67,11 +67,10 @@ class AuthNotifier extends ChangeNotifier {
     }
   }
 
-  // *** FIX: Moved this function outside of fetchDailyWaterIntake ***
   Future<void> saveDailyWaterIntake(int count) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-    if (count < 0 || count > 8) return; // giới hạn số lượng nước
+    if (count < 0 || count > 8) return; // giới hạn số lượngน้ำ
 
     final dateStr = _getTodayDateString();
     final waterData = {
@@ -91,11 +90,67 @@ class AuthNotifier extends ChangeNotifier {
       print('Error saving water intake: $e');
     }
   }
+
   Future<void> incrementWaterIntake() async {
     final currentCount = _dailyWaterCount;
     if (currentCount < 8) {
-      // เรียกใช้ฟังก์ชัน save ที่มีอยู่แล้วเพื่อบันทึกค่าใหม่
       await saveDailyWaterIntake(currentCount + 1);
+    }
+  }
+
+  //============================================================================
+  //  Daily Weight Data Section
+  //============================================================================
+  double? _todayWeight;
+  double? get todayWeight => _todayWeight;
+
+  Future<void> fetchTodayWeight() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final dateStr = _getTodayDateString();
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users').doc(user.uid)
+          .collection('daily_weight').doc(dateStr)
+          .get();
+
+      if (doc.exists && doc.data()!.containsKey('weight')) {
+        _todayWeight = (doc.data()!['weight'] as num?)?.toDouble();
+      } else {
+        _todayWeight = null;
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching today weight: $e');
+    }
+  }
+
+  Future<void> saveTodayWeight(double weight) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
+    }
+    if (weight <= 0) {
+      return;
+    }
+
+    final dateStr = _getTodayDateString();
+    final weightData = {
+      'weight': weight,
+      'updatedAt': Timestamp.now(),
+    };
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users').doc(user.uid)
+          .collection('daily_weight').doc(dateStr)
+          .set(weightData, SetOptions(merge: true));
+
+      _todayWeight = weight;
+      notifyListeners();
+    } catch (e) {
+      print('Error saving today weight: $e');
     }
   }
 
@@ -167,36 +222,32 @@ class AuthNotifier extends ChangeNotifier {
     return FirebaseFirestore.instance
         .collection('users')
         .doc(uid)
-        .collection('data_exercise'); // <-- Path ที่ง่ายและตรงไปตรงมาขึ้น
+        .collection('daily_exercise'); // เปลี่ยนชื่อ collection ให้ตรงกับโครงสร้างใหม่
   }
 
   Future<void> fetchExerciseActivities() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-
     try {
       final snapshot = await _getExerciseCollection(user.uid).get();
-
       _exerciseActivities = snapshot.docs.map((doc) {
         return ExerciseActivity.fromMap(doc.id, doc.data() as Map<String, dynamic>);
       }).toList();
-
       notifyListeners();
     } catch (e) {
       print('Error fetching exercise activities: $e');
     }
   }
 
-  Future<void> saveExerciseActivity(ExerciseActivity activity) async {
+  Future<void> saveExerciseActivity(ExerciseActivity activity, {DateTime? date}) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-
+    // ใช้ doc id เป็นวันที่ที่ส่งเข้ามา (หรือวันนี้ถ้าไม่ระบุ)
+    final dateStr = DateFormat('yyyy-MM-dd').format(date ?? DateTime.now());
     try {
-      // ใช้ ID ของ activity เป็น ID ของ document
-      await _getExerciseCollection(user.uid).doc(activity.id).set(activity.toMap());
-
+      await _getExerciseCollection(user.uid).doc(dateStr).set(activity.toMap());
       // Update local list to reflect changes immediately
-      final index = _exerciseActivities.indexWhere((a) => a.id == activity.id);
+      final index = _exerciseActivities.indexWhere((a) => a.id == dateStr);
       if (index != -1) {
         _exerciseActivities[index] = activity;
       } else {

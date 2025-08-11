@@ -3,7 +3,7 @@ import 'package:provider/provider.dart'; // เพิ่ม import provider
 import '../providers/auth_notifier.dart'; // เพิ่ม import AuthNotifier
 import 'profile_page.dart'; // ตรวจสอบว่า path ถูกต้อง
 import 'register_screen.dart'; // ตรวจสอบว่า path ถูกต้อง
-import 'dashboard.dart'; // ตรวจสอบว่า path ถูกต้อง
+import 'main_navigation_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -44,13 +44,15 @@ class LoginScreen extends StatelessWidget {
         if (isComplete) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            MaterialPageRoute(builder: (context) => MainNavigationScreen()),
           );
+          return;
         } else {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const BasicProfileScreen()),
           );
+          return;
         }
       }
     }
