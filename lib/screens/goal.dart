@@ -1,15 +1,14 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
-// กำหนดค่าสีหลักตามที่ผู้ใช้ต้องการ
+// Define main colors as desired
 const Color primaryColor = Color(0xFF0ABAB5);
 const Color gradientColor = Color(0xFF56DFCF);
 const Color textColor = Color(0xFF000000);
 const Color textOnButtonColor = Color(0xFFFFFFFF);
-const Color backgroundColor = Color(0xFFF5F8FF); // สีพื้นหลังอ่อนๆ จากรูปภาพ
+const Color backgroundColor = Color(0xFFF5F8FF); // Light background color
 const Color cardBackgroundColor = Colors.white;
 const Color goalCardColor = Color(0xFFE6F7FF);
 
@@ -25,7 +24,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Goals & Achievements UI',
       theme: ThemeData(
-        fontFamily: 'Poppins', // ใช้ฟอนต์ที่ดูทันสมัย (สามารถเปลี่ยนได้)
+        fontFamily: 'Poppins',
         primaryColor: primaryColor,
         scaffoldBackgroundColor: backgroundColor,
         appBarTheme: const AppBarTheme(
@@ -39,7 +38,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 class GoalsScreen extends StatefulWidget {
   const GoalsScreen({super.key});
 
@@ -50,11 +48,10 @@ class GoalsScreen extends StatefulWidget {
 class _GoalsScreenState extends State<GoalsScreen> {
   final TextEditingController _targetValueController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
-  String _selectedGoalType = 'ลดน้ำหนัก';
-  final List<String> _goalTypes = ['ลดน้ำหนัก', 'สร้างกล้ามเนื้อ', 'อื่น ๆ'];
+  String _selectedGoalType = 'Lose Weight';
+  final List<String> _goalTypes = ['Lose Weight', 'Build Muscle', 'Other'];
 
   double? _latestWeight;
-
 
   @override
   void initState() {
@@ -63,10 +60,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
   }
 
   Future<void> _fetchLatestWeight() async {
-  // ดึงน้ำหนักล่าสุด ไม่ต้อง setState สำหรับ loading
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-  return;
+      return;
     }
     final dailyWeightRef = FirebaseFirestore.instance.collection('users').doc(user.uid).collection('daily_weight');
     final snapshot = await dailyWeightRef.orderBy('updatedAt', descending: true).limit(1).get();
@@ -76,7 +72,6 @@ class _GoalsScreenState extends State<GoalsScreen> {
     } else {
       _latestWeight = null;
     }
-  // จบการดึงน้ำหนักล่าสุด
   }
 
   Future<void> _addGoalDialog(BuildContext context) async {
@@ -84,7 +79,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('เพิ่มเป้าหมายใหม่'),
+          title: const Text('Add New Goal'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -96,30 +91,30 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     _selectedGoalType = val!;
                   });
                 },
-                decoration: const InputDecoration(labelText: 'ประเภทเป้าหมาย'),
+                decoration: const InputDecoration(labelText: 'Goal Type'),
               ),
               TextField(
                 controller: _targetValueController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: _selectedGoalType == 'ลดน้ำหนัก'
-                      ? 'น้ำหนักเป้าหมาย (kg)'
-                      : _selectedGoalType == 'สร้างกล้ามเนื้อ'
-                          ? 'กล้ามเนื้อเป้าหมาย (kg)'
-                          : 'เป้าหมาย',
+                  labelText: _selectedGoalType == 'Lose Weight'
+                      ? 'Target Weight (kg)'
+                      : _selectedGoalType == 'Build Muscle'
+                          ? 'Target Muscle (kg)'
+                          : 'Target',
                 ),
               ),
               TextField(
                 controller: _durationController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'ระยะเวลา (วัน)'),
+                decoration: const InputDecoration(labelText: 'Duration (days)'),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('ยกเลิก'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -143,23 +138,21 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     });
                   } catch (e) {
                     print('Error saving goal: $e');
-                    // อาจแสดง SnackBar แจ้งเตือนผู้ใช้
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('เกิดข้อผิดพลาดในการบันทึกเป้าหมาย: $e')),
+                        SnackBar(content: Text('Error saving goal: $e')),
                       );
                     }
                   }
                 } else {
-                  // แจ้งเตือนถ้าข้อมูลไม่ครบหรือผิด type
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('กรุณากรอกข้อมูลเป้าหมายให้ถูกต้อง')),
+                      const SnackBar(content: Text('Please enter valid goal information')),
                     );
                   }
                 }
               },
-              child: const Text('บันทึก'),
+              child: const Text('Save'),
             ),
           ],
         );
@@ -207,8 +200,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   if (docs.isEmpty) {
                     return Card(
                       child: ListTile(
-                        title: const Text('ยังไม่มีเป้าหมาย'),
-                        subtitle: const Text('กด + เพื่อเพิ่มเป้าหมาย'),
+                        title: const Text('No goals yet'),
+                        subtitle: const Text('Tap + to add a goal'),
                       ),
                     );
                   }
@@ -219,24 +212,22 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       final targetValue = data['targetValue'] ?? '-';
                       final duration = data['duration'] ?? '-';
                       final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
-                      // ดึงน้ำหนักล่าสุดจาก daily_weight
                       final currentValue = _latestWeight;
                       double progress = 0.0;
                       String targetLabel = '';
-                      if (goalType == 'ลดน้ำหนัก') {
-                        targetLabel = 'น้ำหนักเป้าหมาย';
+                      if (goalType == 'Lose Weight') {
+                        targetLabel = 'Target Weight';
                         if (currentValue != null && targetValue is num && currentValue > targetValue) {
                           final start = currentValue;
                           final end = targetValue.toDouble();
-                          // สมมติว่าต้องการลดจาก currentValue ไปยัง targetValue
                           final total = start - end;
                           progress = total > 0 ? ((start - currentValue) / total).clamp(0, 1) : 0.0;
                         }
-                      } else if (goalType == 'สร้างกล้ามเนื้อ') {
-                        targetLabel = 'กล้ามเนื้อเป้าหมาย';
+                      } else if (goalType == 'Build Muscle') {
+                        targetLabel = 'Target Muscle';
                         progress = 0.0;
                       } else {
-                        targetLabel = 'เป้าหมาย';
+                        targetLabel = 'Target';
                         progress = 0.0;
                       }
                       return Card(
@@ -253,7 +244,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                   Text(goalType, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryColor)),
                                   IconButton(
                                     icon: const Icon(Icons.delete, color: Colors.red),
-                                    tooltip: 'ลบเป้าหมาย',
+                                    tooltip: 'Delete Goal',
                                     onPressed: () async {
                                       await FirebaseFirestore.instance.collection('users').doc(user.uid).collection('goals').doc(doc.id).delete();
                                       setState(() {});
@@ -262,9 +253,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              Text('$targetLabel: $targetValue ใน $duration วัน'),
+                              Text('$targetLabel: $targetValue in $duration days'),
                               if (createdAt != null)
-                                Text('เริ่ม: ${DateFormat('yyyy-MM-dd').format(createdAt)}'),
+                                Text('Start: ${DateFormat('yyyy-MM-dd').format(createdAt)}'),
                               const SizedBox(height: 12),
                               LinearProgressIndicator(
                                 value: progress,
@@ -289,8 +280,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 builder: (context, dailySnapshot) {
                   if (!dailySnapshot.hasData) return const CircularProgressIndicator();
                   final dailyDocs = dailySnapshot.data!.docs;
-                  // --- Water streak calculation (robust) ---
-                  // 1. Filter เฉพาะ doc ที่ water_intake >= 8 และ doc id เป็นวันที่ที่ parse ได้
+                  // Water streak calculation (robust)
                   final validEntries = dailyDocs.map((doc) {
                     final data = doc.data() as Map<String, dynamic>;
                     final id = doc.id;
@@ -319,9 +309,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     return waterCount != null && waterCount >= 8;
                   })
                   .toList();
-                  // 2. sort by date ASC
                   validEntries.sort((a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime));
-                  // 3. นับ streak เฉพาะวันที่ติดกัน ถ้าขาดวัน streak จะ reset เป็น 0
                   int waterStreak = 0;
                   DateTime? lastDate;
                   bool broken = false;
@@ -332,13 +320,11 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     } else if (currentDate.difference(lastDate).inDays == 1) {
                       waterStreak++;
                     } else {
-                      // ขาดวัน streak ต้อง reset เป็น 0
                       waterStreak = 1;
                       broken = true;
                     }
                     lastDate = currentDate;
                   }
-                  // ถ้ามีการขาดวัน streak ให้แสดง 0 (reset)
                   if (broken) waterStreak = 0;
 
                   // Exercise streak calculation (robust)
@@ -347,7 +333,6 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     builder: (context, exerciseSnapshot) {
                       if (!exerciseSnapshot.hasData) return const CircularProgressIndicator();
                       final exerciseDocs = exerciseSnapshot.data!.docs;
-                      // Filter เฉพาะ doc id ที่เป็นวันที่ (yyyy-MM-dd)
                       final validEntries = exerciseDocs.map((doc) {
                         DateTime? date;
                         try {
@@ -455,12 +440,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       streak = 0;
                     }
                   }
-                  // Removed old water streak card below the combined streak card
                   return const SizedBox.shrink();
                 },
-              ),      // --- Daily Summary (water, sleep, exercise) ---
-
-              // ...removed old water streak, sleep, and exercise summary cards...
+              ),
             ],
           ),
         ),

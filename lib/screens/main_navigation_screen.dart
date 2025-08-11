@@ -3,6 +3,7 @@ import 'dashboard.dart';
 import 'meal_logging.dart';
 import 'daily_habits.dart';
 import 'goal.dart';
+import 'notifications_page.dart';
 
 const Color primaryColor = Color(0xFF0ABAB5);
 const Color secondaryColor = Color(0xFF56DFCF);
@@ -19,6 +20,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     MealLoggingScreen(),
     DailyHabitsScreen(),
     GoalsScreen(),
+    NotificationsPage(), // ใช้หน้าใหม่สำหรับ nav bar
   ];
 
   void _onItemTapped(int index) {
@@ -88,6 +90,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   color: _selectedIndex == 3 ? primaryColor : secondaryColor.withOpacity(0.7),
                 ),
                 label: 'Goal',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  Icons.notifications,
+                  color: _selectedIndex == 4 ? primaryColor : secondaryColor.withOpacity(0.7),
+                ),
+                label: 'Notifications',
               ),
             ],
             currentIndex: _selectedIndex,

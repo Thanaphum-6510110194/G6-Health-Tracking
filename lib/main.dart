@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:health_tracking/screens/meal_logging.dart';
 import 'package:provider/provider.dart'; // เพิ่ม import provider
 import 'firebase_options.dart';
+import 'services/notification_service.dart';
 import 'screens/splash_screen.dart';
 import 'providers/auth_notifier.dart'; // เพิ่ม import AuthNotifier
 import 'screens/dashboard.dart';
@@ -13,8 +14,10 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await NotificationService.initializeFCM();
+  NotificationService.setupOnMessageHandlers();
   runApp(
-    // ห่อ MyApp ด้วย ChangeNotifierProvider
     ChangeNotifierProvider(
       create: (context) => AuthNotifier(), // สร้าง instance ของ AuthNotifier
       child: const MyApp(),
