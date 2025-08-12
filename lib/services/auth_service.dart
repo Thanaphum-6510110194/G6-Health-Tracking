@@ -27,6 +27,10 @@ class AuthService {
     }
   }
 
+  // ฟังก์ชัน logout
+  Future<void> logout() async {
+    await _auth.signOut();
+  }
   // คุณสามารถเพิ่มฟังก์ชันอื่นๆ ที่เกี่ยวกับ Auth ได้ที่นี่
   // เช่น register, signOut, etc.
 }

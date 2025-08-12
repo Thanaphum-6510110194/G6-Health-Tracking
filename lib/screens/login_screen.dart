@@ -5,26 +5,36 @@ import 'profile_page.dart'; // ตรวจสอบว่า path ถูกต�
 import 'register_screen.dart'; // ตรวจสอบว่า path ถูกต้อง
 import 'main_navigation_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
-    final _emailController = TextEditingController();
-    final _passwordController = TextEditingController();
-    final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+  State<LoginScreen> createState() => _LoginScreenState();
+}
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      authNotifier.setSnackBarCallback((message, {bool isError = false}) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: isError ? Colors.red.shade700 : Colors.green,
-          ),
-        );
-      });
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+    authNotifier.setSnackBarCallback((message, {bool isError = false}) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: isError ? Colors.red.shade700 : Colors.green,
+        ),
+      );
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
 
     // ฟังก์ชันหลักสำหรับจัดการการเข้าสู่ระบบ
     Future<void> _login() async {
@@ -41,6 +51,7 @@ class LoginScreen extends StatelessWidget {
       if (!authNotifier.isLoading && authNotifier.emailError == null && authNotifier.passwordError == null) {
         // ถ้าไม่มีข้อผิดพลาดและไม่ได้อยู่ในสถานะโหลด แสดงว่าล็อกอินสำเร็จ
         final isComplete = await authNotifier.isProfileSetupComplete();
+        if (!mounted) return;
         if (isComplete) {
           Navigator.pushReplacement(
             context,

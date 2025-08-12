@@ -9,6 +9,15 @@ import '../models/exercise_activity.dart';
 // คุณสามารถย้ายคลาสนี้ไปไว้ในไฟล์ model แยกต่างหากได้
 
 class AuthNotifier extends ChangeNotifier {
+  // ฟังก์ชัน logout
+  Future<void> logout() async {
+    try {
+      await _authService.logout();
+      notifyListeners();
+    } catch (e) {
+      // ไม่ต้องแสดง SnackBar ที่นี่ เพราะ context อาจถูก dispose แล้ว
+    }
+  }
   /// Checks if all profile setup sections are filled for the current user.
   Future<bool> isProfileSetupComplete() async {
     final user = FirebaseAuth.instance.currentUser;
