@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_notifier.dart';
+import 'main_navigation_screen.dart';
 import 'dashboard.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -178,7 +179,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   );
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const DashboardScreen()),
+                    MaterialPageRoute(builder: (context) => MainNavigationScreen()),
                   );
                 },
                 borderRadius: BorderRadius.circular(12),
