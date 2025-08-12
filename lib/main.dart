@@ -9,12 +9,21 @@ import 'providers/auth_notifier.dart'; // เพิ่ม import AuthNotifier
 import 'screens/dashboard.dart';
 import 'screens/daily_habits.dart';
 
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+/*******************ลบฐานข้อมูลเก่า********************/
+/********************สำหรับทดสอบ********************/
+  final dbPath = await getDatabasesPath();
+  final path = join(dbPath, 'localdatabase.db');
 
+  await deleteDatabase(path);
+/***************************************************/
   await NotificationService.initializeFCM();
   NotificationService.setupOnMessageHandlers();
   runApp(
