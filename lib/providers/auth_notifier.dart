@@ -751,4 +751,32 @@ class AuthNotifier extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  String? _fullName;
+  String? get fullName => _fullName;
+
+  Future<void> fetchUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final profileDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('profile')
+        .doc('profile_data')
+        .get();
+
+    _fullName = profileDoc.data()?['fullName'];
+
+    final todayKey = DateTime.now().toIso8601String().split('T').first;
+    final weightDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('weights')
+        .doc(todayKey)
+        .get();
+
+    _todayWeight = (weightDoc.data()?['weight'])?.toDouble();
+    notifyListeners();
+  }
 }
