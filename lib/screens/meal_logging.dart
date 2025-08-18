@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'search_food.dart';
 import 'take_photo.dart';
 
 class TakePhotoScreen extends StatelessWidget {
@@ -8,17 +9,6 @@ class TakePhotoScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Take Photo')),
       body: const Center(child: Text('Take Photo Screen Content')),
-    );
-  }
-}
-
-class SearchFoodScreen extends StatelessWidget {
-  const SearchFoodScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Search Food')),
-      body: const Center(child: Text('Search Food Screen Content')),
     );
   }
 }
@@ -191,7 +181,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const SearchFoodScreen(),
+                  builder: (context) => NutritionScreen(),
                 ),
               );
             },
